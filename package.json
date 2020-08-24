@@ -71,6 +71,7 @@
     "ololog": "^1.1.161",
     "ora": "^5.0.0",
     "pg": "^8.3.2",
+    "ping": "^0.2.3",
     "pretty-error": "^2.1.1",
     "prettycli": "^1.4.3",
     "prettyprint": "^1.1.2",

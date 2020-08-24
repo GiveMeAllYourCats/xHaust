@@ -3,6 +3,10 @@ const path = require('path')
 const appRoot = require('app-root-path').path
 
 const tags = {}
+
+const PREFFERED_PREFIX_TAGS = ['http', 'https']
+const PREFFERED_SUFFIX_TAGS = ['urlencoded']
+
 tags.load = async xHaust => {
 	return new Promise(async (resolve, reject) => {
 		const tags = []
@@ -16,22 +20,16 @@ tags.load = async xHaust => {
 		}
 		xHaust.tags = tags
 
-		const event = async (event, data) => {
+		xHaust.event.onAny(async (event, data) => {
+			xHaust.Debug.info(`EVENT > ${event}`)
 			for (let tag in xHaust.tags) {
 				if (xHaust.tags[tag][event]) {
+					xHaust.Debug.info(` > ${tag}.js`)
 					await xHaust.tags[tag][event](data)
 				} else {
 					xHaust.Debug.warn(`${tag}.js does not have ${event} function`)
 				}
 			}
-		}
-
-		xHaust.event.on('preAttackPhaseStart', async data => {
-			await event('preAttackPhaseStart', data)
-		})
-
-		xHaust.event.onAny((event, data) => {
-			xHaust.Debug.info(`EVENT > ${event}`)
 		})
 
 		return resolve()

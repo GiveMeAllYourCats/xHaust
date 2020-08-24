@@ -6,14 +6,15 @@ const banner = require('./modules/banner')
 const List = require('./classes/list')
 const packagejson = require('./package.json')
 const Emittery = require('emittery')
+const cliProgress = require('cli-progress')
 
 module.exports = class xHaust {
 	DEFAULT_SETTINGS = {
 		attackUri: 'http://10.10.10.191/admin/login',
-		user: 'fergus',
+		user: undefined,
 		userFile: undefined,
 		pass: undefined,
-		passFile: '/usr/share/seclists/Passwords/Common-Credentials/10-million-password-list-top-1000000.txt',
+		passFile: undefined,
 		test: false,
 		tags: ['http', 'post', 'urlencoded'],
 		limitParallel: 120,
@@ -62,11 +63,8 @@ module.exports = class xHaust {
 		delete this.DEFAULT_SETTINGS
 
 		// Debug filters
-		this.Debug.filter = ['debug', 'log']
-		if (true) {
-			// Debug flag here?
-			this.Debug.filter = ['nothing']
-		}
+		this.Debug.filter = ['debug', 'log', 'warn', 'info']
+		this.Debug.filter = ['nothing'] // Debug env flag here?
 
 		if (launchOptions.commander) {
 			await this.runCommander()
@@ -88,9 +86,10 @@ module.exports = class xHaust {
 			}
 		}
 
-		this.Debug.debug(`Started ${packagejson.name} v${packagejson.version}`)
+		this.Debug.success(`Started ${packagejson.name} v${packagejson.version}`)
 
 		await tags.load(this)
+		return this
 	}
 
 	async loadLists() {
@@ -115,19 +114,68 @@ module.exports = class xHaust {
 		this.Debug.debug('Tags of attack:', this.settings.tags.join('-'), '@', this.settings.uri.href)
 		await this.loadLists()
 		await this.event.emit('preAttackPhaseStart')
+		// Calculate total items todo:
+		this.total = 0
+		if (this.settings.bruteforce.user.constructor.name === 'List') {
+			this.total += this.settings.bruteforce.user.total
+		}
+		if (this.settings.bruteforce.pass.constructor.name === 'List') {
+			this.total += this.settings.bruteforce.pass.total
+		}
+
+		console.log(this.total)
+		process.exit()
+
 		await this.event.emit('preAttackPhaseEnd')
 		await this.attack()
 	}
 
 	async attack() {
 		await this.event.emit('attackPhaseStart')
+
+		// // create a new progress bar instance and use shades_classic theme
+		// const bar1 = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+
+		// // start the progress bar with a total value of 200 and start value of 0
+		// bar1.start(200, 0);
+
+		// // update the current value in your application..
+		// bar1.update(100);
+
+		// // stop the progress bar
+		// bar1.stop();
+
+		// Get next password
+		let password = this.settings.bruteforce.pass
+		if (password.constructor.name === 'List') {
+			let nextPassword = await password.next()
+			if (nextPassword.done) {
+				return await this.postAttack('passwordlist exhausted')
+			}
+			password = nextPassword.value
+		}
+
+		// Get next username
+		let username = this.settings.bruteforce.user
+		if (username.constructor.name === 'List') {
+			let nextUsername = await username.next()
+			if (nextUsername.done) {
+				return await this.postAttack('userlist exhausted')
+			}
+			username = nextUsername.value
+		}
+
+		this.Debug.log({ username, password })
+		await this.event.emit('attack', { username, password })
 		await this.event.emit('attackPhaseEnd')
-		await this.postAttack()
+		await this.attack()
 	}
 
-	async postAttack() {
+	async postAttack(reason = 'unknown') {
 		await this.event.emit('postAttackPhaseStart')
 		await this.event.emit('postAttackPhaseEnd')
+
+		console.log(`Stopped xHaust.\nReason: ${reason}\n\nByeBye...`)
 		process.exit() // we are done here!
 	}
 }

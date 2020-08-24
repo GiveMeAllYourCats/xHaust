@@ -35,6 +35,10 @@ module.exports = class Debug extends require('../classes/package') {
 			this.displayMsg('debug', args)
 		}
 
+		this.success = (...args) => {
+			this.displayMsg('success', args)
+		}
+
 		this.info = (...args) => {
 			this.displayMsg('info', args)
 		}
@@ -91,6 +95,10 @@ module.exports = class Debug extends require('../classes/package') {
 			info: {
 				bg: chalk.keyword('cyan'),
 				text: chalk.keyword('grey')
+			},
+			success: {
+				bg: chalk.keyword('green'),
+				text: chalk.keyword('darkgreen')
 			},
 			error: {
 				bg: chalk.bgRed,
@@ -159,7 +167,7 @@ module.exports = class Debug extends require('../classes/package') {
 		const opts = { flags: 'a' }
 		mkdirp.sync(path.join(this.xHaust.root, 'logs'))
 		this.stream = {}
-		for (let type of ['log', 'debug', 'info', 'warn', 'error']) {
+		for (let type of ['log', 'debug', 'info', 'warn', 'error', 'success']) {
 			const file = path.join(
 				__dirname,
 				'..',

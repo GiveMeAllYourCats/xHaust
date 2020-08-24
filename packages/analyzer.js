@@ -111,12 +111,9 @@ module.exports = class Analyzer extends require('../classes/package') {
 		this.xHaust.Debug.info(`${url.href} action url is ${actionUrl}`)
 
 		// console.log({ actionUrl, username, password, csrf })
-		return
 
-		// Form detection
-		const formSelector = dom.querySelectorAll('form')
-		this.results.form = formSelector ? formSelector : false
-
-		return resolve(results)
+		this.xHaust.Debug.success(`Analyze done`)
+		this.results = results
+		return results
 	}
 }
