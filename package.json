@@ -1,6 +1,6 @@
 {
   "name": "xhaust",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Blazingly fast brute forcer made in Node.js, exhausting your logins... For science.",
   "main": "xhaust.js",
   "scripts": {
