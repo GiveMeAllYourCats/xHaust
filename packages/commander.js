@@ -26,13 +26,15 @@ module.exports = class Commander extends require('../classes/package') {
 
 		program.option('-a, --attackUri <attackUri>', 'protocol URI to attack')
 		program.option('-u, --user <user>', 'username to use in attack payload')
-		program.option('-U, --userfile <userfile>', 'file full of usernames to use in attack payload')
+		program.option('-U, --userFile <userfile>', 'file full of usernames to use in attack payload')
 		program.option('-p, --pass <pass>', 'password to use in attack payload')
-		program.option('-P, --passfile <passfile>', 'file full of passwords to use in attack payload')
+		program.option('-P, --passFile <passfile>', 'file full of passwords to use in attack payload')
 		program.option('-l, --limitParallel <limitParallel>', 'max parallel requests at a time')
 		program.option('-b, --batchSize <batchSize>', 'the get and post requests batch size')
-		program.option('-d, --dry-run <dryRun>', 'executes the attack in dry run mode')
+		program.option('-d, --dryRun <dryRun>', 'executes the attack in dry run mode')
 		program.option('-T, --test', 'run attack on in built local http server for testing')
+		program.option('-v, --verbose', 'Shows all debug messages')
+		program.option('-D, --debugFilter <debugFilter>', 'Filter debug messages')
 		program.option(
 			'-t, --tags <tags>',
 			'tags to use for this attack seperated by hypens (Ex. http-post-urlencoded)'
@@ -74,12 +76,15 @@ module.exports = class Commander extends require('../classes/package') {
 		if (program.pass) output.pass = program.pass
 		if (program.passFile) output.passFile = program.passFile
 		if (program.test) output.test = program.test
-		if (program.tags) output.tags = program.tags
+		if (program.tags) output.tags = program.tags.split('-')
 		if (program.limitParallel) output.limitParallel = program.limitParallel
 		if (program.useGui) output.useGui = program.useGui
 		if (program.batchSize) output.batchSize = program.batchSize
 		if (program.input) output.input = program.input
 		if (program.output) output.output = program.output
+		if (program.verbose) output.verbose = program.verbose
+		if (program.dryRun) output.dryRun = program.dryRun
+		if (program.debugFilter) output.debugFilter = program.debugFilter.split(',')
 
 		if (!output.attackUri && !output.test) {
 			this.xHaust.Debug.error(`either --attackUri or --test needs to be set`)

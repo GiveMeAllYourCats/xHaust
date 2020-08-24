@@ -57,5 +57,5 @@ Options:
     ├── metadata                # Metadata folder stores arbitrary data for example attack files
     ├── modules                 # A simple module object that performs basic tasks
     ├── packages                # Packages are classes that are imported and instanced by xHaust and are the internal workings
-    ├── test                    # Test folder that holds all test scripts
+    ├── tests                   # Test folder that holds all test data
     └── ...

@@ -1,3 +1,4 @@
+// Packages bootstrapper
 module.exports = class Package {
 	constructor() {}
 

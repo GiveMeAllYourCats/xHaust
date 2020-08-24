@@ -58,9 +58,6 @@ module.exports = class Debug extends require('../classes/package') {
 		this.fatal(e)
 		console.log(e.toString())
 		console.log(stacktrace)
-
-		process.exit()
-
 		fs.appendFileSync(this.fatalFile, e.toString() + '\n')
 		fs.appendFileSync(this.fatalFile, stacktrace + '\n')
 		fs.appendFileSync(this.allFile, e.toString() + '\n')
@@ -120,7 +117,10 @@ module.exports = class Debug extends require('../classes/package') {
 			.configure({
 				locate,
 				stringify: {
-					maxDepth: 2
+					maxDepth: 3,
+					maxArrayLength: 9000,
+					maxObjectLength: 9000,
+					maxStringLength: 90000
 				},
 				time: timeObject
 			})
@@ -132,9 +132,9 @@ module.exports = class Debug extends require('../classes/package') {
 				stringify: {
 					maxDepth: 2,
 					maxLength: 999999,
-					maxArrayLength: 2,
-					maxObjectLength: 2,
-					maxStringLength: 2
+					maxArrayLength: 20,
+					maxObjectLength: 10,
+					maxStringLength: 9000
 				},
 				time: timeObject
 			})
