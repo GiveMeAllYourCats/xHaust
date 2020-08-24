@@ -1,6 +1,15 @@
-<p align="center">
-  <img src="https://i.imgur.com/ycMP8RV.png">
-</p>
+```
+
+               .,::      .:  ::   .:    :::.      ...    ::: .::::::. ::::::::::::
+               `;;;,  .,;;  ,;;   ;;,   ;;`;;     ;;     ;;;;;;`    ` ;;;;;;;;''''
+                 '[[,,[['  ,[[[,,,[[[  ,[[ '[[,  [['     [[['[==/[[[[,     [[
+                  Y$$$P    "$$$"""$$$ c$$$cc$$$c $$      $$$  '''    $     $$
+                oP"``"Yo,   888   "88o 888   888,88    .d888 88b    dP     88,
+             ,m"       "Mm, MMM    YMM YMM   ""`  "YmmMMMM""  "YMmMY"      MMM    v0.0.5
+
+   💪⚡Blazingly fast brute forcer made in Node.js, exhausting your logins... For science.
+
+```
 
 ### xHaust
 
@@ -35,13 +44,15 @@ Options:
   -V, --version                        output the version number
   -a, --attackUri <attackUri>          protocol URI to attack
   -u, --user <user>                    username to use in attack payload
-  -U, --userfile <userfile>            file full of usernames to use in attack payload
+  -U, --userFile <userfile>            file full of usernames to use in attack payload
   -p, --pass <pass>                    password to use in attack payload
-  -P, --passfile <passfile>            file full of passwords to use in attack payload
+  -P, --passFile <passfile>            file full of passwords to use in attack payload
   -l, --limitParallel <limitParallel>  max parallel requests at a time
   -b, --batchSize <batchSize>          the get and post requests batch size
-  -d, --dry-run <dryRun>               executes the attack in dry run mode
+  -d, --dryRun <dryRun>                executes the attack in dry run mode
   -T, --test                           run attack on in built local http server for testing
+  -v, --verbose                        Shows all debug messages
+  -D, --debugFilter <debugFilter>      Filter debug messages
   -t, --tags <tags>                    tags to use for this attack seperated by hypens (Ex. http-post-urlencoded)
   -i, --input <input>                  input string to use as first scan structure data (Ex. form input names configurations)
   -o, --output <output>                output string to use as payload for attack, will replace :username: :password: and :csrf: with respectable values
@@ -52,7 +63,7 @@ Options:
 ##### Example call:
 
 ```bash
-  $ xhaust -a https://website.com -t -a http://somewebsite.com http-post-urlencoded -u admin -P passwords.txt -s 1000 -l 130 -i "csrf=token" -o "username=:username:&password=:password:&csrftoken=:csrf:"`
+  $ xhaust -t -a http://somewebsite.com http-post-urlencoded -u admin -P passwords.txt -s 1000 -l 130 -i "csrf=token" -o "username=:username:&password=:password:&csrftoken=:csrf:"`
 ```
 
 #### Project Layout
