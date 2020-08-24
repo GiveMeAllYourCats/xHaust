@@ -7,7 +7,7 @@
 [![HitCount](http://hits.dwyl.io/givemeallyourcats/xhaust.svg)](http://hits.dwyl.io/givemeallyourcats/xhaust)
 [![Package quality](https://packagequality.com/shield/xhaust.svg)](https://packagequality.com/#?package=xhaust)
 [![Build Status](https://travis-ci.org/givemeallyourcats/xhaust.png?branch=master)](https://travis-ci.org/givemeallyourcats/xhaust)
-[![Coverage Status](https://coveralls.io/repos/github/givemeallyourcats/xhaust/badge.svg?branch=master)](https://coveralls.io/github/givemeallyourcats/xhaust?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/GiveMeAllYourCats/xHaust/badge.svg?branch=master)](https://coveralls.io/github/iveMeAllYourCats/xHaust?branch=master)
 [![Licensing](https://img.shields.io/github/license/givemeallyourcats/xhaust.svg)](https://raw.githubusercontent.com/givemeallyourcats/xhaust/master/LICENSE)
 [![Repo size](https://img.shields.io/github/repo-size/givemeallyourcats/xhaust.svg)](https://github.com/givemeallyourcats/xhaust)
 [![Downloads per week](https://img.shields.io/npm/dw/xhaust.svg)](https://www.npmjs.com/package/xhaust)

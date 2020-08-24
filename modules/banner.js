@@ -1,3 +1,4 @@
+const packagejson = require('../package.json')
 const figlet = require('figlet')
 const chalk = require('chalk')
 
@@ -25,9 +26,12 @@ banner.show = async () => {
 					console.log('Error displaying banner: ', err.toString())
 					return resolve()
 				}
-				console.log(`\n\n             ${chalk.keyword('grey')(data.split('\n').join('\n             '))}\n\n`)
 				console.log(
-					`   💪⚡Blazingly fast brute forcer made in Node.js, exhausting your logins... For science.\n\n`
+					`\n\n             ${chalk.keyword('darkgrey')(data.split('\n').join('\n             '))}` +
+						chalk.hex('#585858')(`v${packagejson.version}`)
+				)
+				console.log(
+					`\n   💪⚡Blazingly fast brute forcer made in Node.js, exhausting your logins... For science.\n\n`
 				)
 				return resolve()
 			}
