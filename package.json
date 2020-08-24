@@ -1,6 +1,6 @@
 {
   "name": "xhaust",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Blazingly fast brute forcer made in Node.js, exhausting your logins... For science.",
   "main": "xhaust.js",
   "scripts": {
@@ -82,8 +82,12 @@
   },
   "devDependencies": {
     "benchmark": "^2.1.4",
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
     "coveralls": "^3.1.0",
+    "csurf": "^1.11.0",
     "express": "^4.17.1",
+    "handlebars": "^4.7.6",
     "husky": "^4.2.5",
     "jsdoc": "^3.6.5",
     "mocha": "^8.1.1",

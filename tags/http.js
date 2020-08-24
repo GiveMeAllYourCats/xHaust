@@ -42,20 +42,24 @@ module.exports = class Http extends require('../classes/tags') {
 		// Check latency
 		performance.mark('httpGet')
 		let backoff = 1
+		let requesting = true
 		const timeout = () => {
-			this.xHaust.Debug.warn(
-				`It's taking a very long time to check the webserver for latency on ${this.xHaust.settings.uri.href}`
-			)
 			backoff *= 2
-			setTimeout(timeout.bind(this), 1000 * backoff)
-			if (backoff >= 10) {
-				throw new Error(`webserver of ${this.xHaust.settings.uri.href} took too long to respond`)
+			if (requesting) {
+				this.xHaust.Debug.warn(
+					`It's taking a very long time to check the webserver for latency on ${this.xHaust.settings.uri.href}`
+				)
+				setTimeout(timeout.bind(this), 1000 * backoff)
+				if (backoff >= 10) {
+					throw new Error(`webserver of ${this.xHaust.settings.uri.href} took too long to respond`)
+				}
 			}
 		}
 		setTimeout(timeout.bind(this), 2000)
 		await this.xHaust.Http.get({
 			uri: this.xHaust.settings.uri
 		})
+		requesting = false
 		clearTimeout(timeout)
 		performance.measure('httpGet')
 
@@ -64,5 +68,14 @@ module.exports = class Http extends require('../classes/tags') {
 
 	async preAttackPhaseEnd() {
 		this.xHaust.Debug.log('http preAttackPhaseStart')
+	}
+
+	async attack(data) {
+		console.log(data)
+		console.log(this.xHaust.Analyzer)
+		await this.xHaust.Http.post({
+			uri: this.xHaust.settings.uri,
+			write: 'username=yeet'
+		})
 	}
 }

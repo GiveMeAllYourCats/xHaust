@@ -16,8 +16,8 @@ module.exports = class Analyzer extends require('../classes/package') {
 		const results = {}
 
 		// Get page title
-		const titleRawText = dom.querySelector('title').rawText
-		let pageTitle = titleRawText ? titleRawText : 'unknown'
+		const titleRawText = dom.querySelector('title')
+		let pageTitle = titleRawText ? titleRawText.rawText : 'unknown'
 
 		// Some header detection
 		let server
@@ -108,9 +108,14 @@ module.exports = class Analyzer extends require('../classes/package') {
 			actionUrl = this.xHaust.settings.uri.path
 		}
 
-		this.xHaust.Debug.info(`${url.href} action url is ${actionUrl}`)
-
-		// console.log({ actionUrl, username, password, csrf })
+		let newUrl = require('url').parse(actionUrl)
+		if (!newUrl.protocol) {
+			newUrl = require('url').parse(
+				`${this.xHaust.settings.uri.protocol}//${this.xHaust.settings.uri.host}${actionUrl}`
+			)
+		}
+		this.xHaust.settings.uri = newUrl
+		this.xHaust.Debug.info(`${url.href} action url is ${this.xHaust.settings.uri.href}`)
 
 		this.xHaust.Debug.success(`Analyze done`)
 		this.results = results

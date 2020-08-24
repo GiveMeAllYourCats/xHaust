@@ -21,13 +21,13 @@ tags.load = async xHaust => {
 		xHaust.tags = tags
 
 		xHaust.event.onAny(async (event, data) => {
-			xHaust.Debug.info(`EVENT > ${event}`)
+			// xHaust.Debug.info(`EVENT > ${event}`)
 			for (let tag in xHaust.tags) {
 				if (xHaust.tags[tag][event]) {
-					xHaust.Debug.info(` > ${tag}.js`)
+					// xHaust.Debug.info(` > ${tag}.js`)
 					await xHaust.tags[tag][event](data)
 				} else {
-					xHaust.Debug.warn(`${tag}.js does not have ${event} function`)
+					// xHaust.Debug.warn(`${tag}.js does not have ${event} function`)
 				}
 			}
 		})

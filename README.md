@@ -63,7 +63,7 @@ Options:
     ├── ...
     ├── xhaust.js               # Main class file of xHaust, handles most control flow
     ├── entry.js                # Entry file for unit tests, cli or otherwise
-    ├── attacks                 # Houses attack middleware files, these are the
+    ├── tags                    # Tag files are to be seen as middleware files between various events in the xhaust lifecycle
     ├── classes                 # Any class files that are not instanced automatically by xHaust
     ├── logs                    # Log files created by xHaust
     ├── metadata                # Metadata folder stores arbitrary data for example attack files
