@@ -12,7 +12,7 @@ module.exports = class List {
 
 			// checks if the list exists
 			if (!fs.existsSync(this.file)) {
-				this.debug.fatal(`${this.file} does not exist`)
+				throw new Error(`${this.file} does not exist`)
 			}
 
 			// count total lines with wc -l (really fast! but erhmm windows??)
