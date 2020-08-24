@@ -111,21 +111,23 @@ module.exports = class xHaust {
 
 	// Everything that needs to be done before the attack loop can begin
 	async preAttack() {
-		await this.event.emit('preAttackPhaseStart')
 		this.Debug.debug('Pre attack phase')
 		this.Debug.debug('Tags of attack:', this.settings.tags.join('-'), '@', this.settings.uri.href)
 		await this.loadLists()
-		await this.Analyzer.run()
+		await this.event.emit('preAttackPhaseStart')
 		await this.event.emit('preAttackPhaseEnd')
-	}
-
-	async postAttack() {
-		await this.event.emit('postAttackPhaseStart')
-		await this.event.emit('postAttackPhaseEnd')
+		await this.attack()
 	}
 
 	async attack() {
 		await this.event.emit('attackPhaseStart')
 		await this.event.emit('attackPhaseEnd')
+		await this.postAttack()
+	}
+
+	async postAttack() {
+		await this.event.emit('postAttackPhaseStart')
+		await this.event.emit('postAttackPhaseEnd')
+		process.exit() // we are done here!
 	}
 }

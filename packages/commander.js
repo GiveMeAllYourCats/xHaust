@@ -16,7 +16,7 @@ module.exports = class Commander extends require('../classes/package') {
 		program.version(packagejson.version)
 		program.exitOverride()
 		const example =
-			'-a https://website.com -t -a http://somewebsite.com http-post-urlencoded -u admin -P passwords.txt -s 1000 -l 130 -i "csrf=token" -o "username=:username:&password=:password:&csrftoken=:csrf:"'
+			'-v -a http://10.10.10.191/admin/login -u fergus -P /usr/share/seclists/Passwords/Common-Credentials/10-million-password-list-top-1000000.txt -t http-post-urlencoded'
 
 		program.on('--help', () => {
 			console.log('')

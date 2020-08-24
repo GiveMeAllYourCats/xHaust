@@ -22,12 +22,11 @@ before(() => {
 	})
 })
 
-// describe('Simple attack test', () => {
-// 	it('should return 2', () => {
-// 		assert.equal(1 + 1, 2)
-// 		console.log(xhaust)
-// 	})
-// })
+describe('Simple attack test', () => {
+	it('should return 2', () => {
+		assert.equal(1 + 1, 2)
+	})
+})
 
 after(() => {
 	return new Promise(resolve => {
