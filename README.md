@@ -1,15 +1,6 @@
-```
-
-               .,::      .:  ::   .:    :::.      ...    ::: .::::::. ::::::::::::
-               `;;;,  .,;;  ,;;   ;;,   ;;`;;     ;;     ;;;;;;`    ` ;;;;;;;;''''
-                 '[[,,[['  ,[[[,,,[[[  ,[[ '[[,  [['     [[['[==/[[[[,     [[
-                  Y$$$P    "$$$"""$$$ c$$$cc$$$c $$      $$$  '''    $     $$
-                oP"``"Yo,   888   "88o 888   888,88    .d888 88b    dP     88,
-             ,m"       "Mm, MMM    YMM YMM   ""`  "YmmMMMM""  "YMmMY"      MMM    v0.0.5
-
-   💪⚡Blazingly fast brute forcer made in Node.js, exhausting your logins... For science.
-
-```
+<p align="center">
+  <img src="https://i.imgur.com/bAaxslQ.png">
+</p>
 
 ### xHaust
 
