@@ -4,6 +4,16 @@
 
 ### xHaust
 
+[![HitCount](http://hits.dwyl.io/givemeallyourcats/xhaust.svg)](http://hits.dwyl.io/givemeallyourcats/xhaust)
+[![Package quality](https://packagequality.com/shield/xhaust.svg)](https://packagequality.com/#?package=xhaust)
+[![Build Status](https://travis-ci.org/givemeallyourcats/xhaust.png?branch=master)](https://travis-ci.org/givemeallyourcats/xhaust)
+[![Coverage Status](https://coveralls.io/repos/github/givemeallyourcats/xhaust/badge.svg?branch=master)](https://coveralls.io/github/givemeallyourcats/xhaust?branch=master)
+[![Licensing](https://img.shields.io/github/license/givemeallyourcats/xhaust.svg)](https://raw.githubusercontent.com/givemeallyourcats/xhaust/master/LICENSE)
+[![Repo size](https://img.shields.io/github/repo-size/givemeallyourcats/xhaust.svg)](https://github.com/givemeallyourcats/xhaust)
+[![Downloads per week](https://img.shields.io/npm/dw/xhaust.svg)](https://www.npmjs.com/package/xhaust)
+[![Node version](https://img.shields.io/node/v/xhaust.svg)](https://www.npmjs.com/package/xhaust)
+[![Help us and star this project](https://img.shields.io/github/stars/givemeallyourcats/xhaust.svg?style=social)](https://github.com/givemeallyourcats/xhaust)
+
 A fast brute forcer made in Node.js, mostly capable of HTTP attacks. The main mantra of xHaust is **speed, reliability and speed**
 
 **xHaust** achieves it's top speed by using the [async](https://caolan.github.io/async/v3/) module, it can execute password tries in parallel with a set limit. Note that Node.js is still single threaded and so is this library. Due to performance reasons the choice to not create multiple threads for this module has been respected, this is because most password tries are finished by the CPU before any other task completes and the CPU can easily exhaust (heh) request speeds before the requests can exhaust the CPU, making threads costly for this kind of goal.
