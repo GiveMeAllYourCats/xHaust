@@ -56,8 +56,8 @@ module.exports = class Debug extends require('../classes/package') {
 		const stacktrace = (await new StackTracey(e).cleanAsync()).asTable()
 		this.logToFile = false
 		this.fatal(e)
-		console.log(e.toString())
-		console.log(stacktrace)
+		// console.log(e.toString())
+		// console.log(stacktrace)
 		fs.appendFileSync(this.fatalFile, e.toString() + '\n')
 		fs.appendFileSync(this.fatalFile, stacktrace + '\n')
 		fs.appendFileSync(this.allFile, e.toString() + '\n')

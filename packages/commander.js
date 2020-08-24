@@ -10,6 +10,7 @@ module.exports = class Commander extends require('../classes/package') {
 		super()
 	}
 
+	// Commander.inquiry is used to 'inquir' the user for options
 	async inquiry() {
 		program.name('xhaust').usage('[options]')
 		program.version(packagejson.version)
@@ -31,8 +32,8 @@ module.exports = class Commander extends require('../classes/package') {
 		program.option('-P, --passFile <passfile>', 'file full of passwords to use in attack payload')
 		program.option('-l, --limitParallel <limitParallel>', 'max parallel requests at a time')
 		program.option('-b, --batchSize <batchSize>', 'the get and post requests batch size')
+		program.option('-r, --retries <retries>', 'Amount of retries before marking a http request as failed')
 		program.option('-d, --dryRun <dryRun>', 'executes the attack in dry run mode')
-		program.option('-T, --test', 'run attack on in built local http server for testing')
 		program.option('-v, --verbose', 'Shows all debug messages')
 		program.option('-D, --debugFilter <debugFilter>', 'Filter debug messages')
 		program.option(
@@ -75,7 +76,6 @@ module.exports = class Commander extends require('../classes/package') {
 		if (program.userFile) output.userFile = program.userFile
 		if (program.pass) output.pass = program.pass
 		if (program.passFile) output.passFile = program.passFile
-		if (program.test) output.test = program.test
 		if (program.tags) output.tags = program.tags.split('-')
 		if (program.limitParallel) output.limitParallel = program.limitParallel
 		if (program.useGui) output.useGui = program.useGui
@@ -85,9 +85,20 @@ module.exports = class Commander extends require('../classes/package') {
 		if (program.verbose) output.verbose = program.verbose
 		if (program.dryRun) output.dryRun = program.dryRun
 		if (program.debugFilter) output.debugFilter = program.debugFilter.split(',')
+		if (program.retries) output.retries = program.retries
 
 		if (!output.attackUri && !output.test) {
 			this.xHaust.Debug.error(`either --attackUri or --test needs to be set`)
+			process.exit()
+		}
+
+		if (!output.user && !output.userFile && !output.test) {
+			this.xHaust.Debug.error(`either --userFile or --user needs to be set`)
+			process.exit()
+		}
+
+		if (!output.pass && !output.passFile && !output.test) {
+			this.xHaust.Debug.error(`either --passFile or --pass needs to be set`)
 			process.exit()
 		}
 

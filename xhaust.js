@@ -1,8 +1,11 @@
 const path = require('path')
+const url = require('url')
 const pkg = require('./modules/pkg')
+const tags = require('./modules/tags')
 const banner = require('./modules/banner')
 const List = require('./classes/list')
 const packagejson = require('./package.json')
+const Emittery = require('emittery')
 
 module.exports = class xHaust {
 	DEFAULT_SETTINGS = {
@@ -11,10 +14,11 @@ module.exports = class xHaust {
 		userFile: undefined,
 		pass: undefined,
 		passFile: '/usr/share/seclists/Passwords/Common-Credentials/10-million-password-list-top-1000000.txt',
-		test: true,
+		test: false,
 		tags: ['http', 'post', 'urlencoded'],
 		limitParallel: 120,
 		useGui: false,
+		retries: 10,
 		batchSize: 1000,
 		input: 'csrf=tokenCSRF',
 		output: 'username=:username:&password=:password:&csrf=:csrf:'
@@ -22,15 +26,38 @@ module.exports = class xHaust {
 
 	constructor() {
 		return new Promise(async (resolve, reject) => {
-			this.root = require('app-root-path').path
-			await pkg.load(this)
+			await this.create()
 			return resolve(this)
 		})
 	}
 
+	// Executed when xhaust is created
+	async create() {
+		this.root = require('app-root-path').path
+		await pkg.load(this)
+		this.event = new Emittery()
+	}
+
 	// Entry is always made via the launch function, be it via unit test, cli or w/e
-	async launch(launchOptions) {
-		// Default settings
+	async launch(launchOptions = {}) {
+		if (this.DEFAULT_SETTINGS) {
+			await this.init(launchOptions)
+		}
+
+		return await this.preAttack()
+	}
+
+	// Will run commander to inquirer options from user
+	async runCommander() {
+		await banner.show()
+		const commanderSettings = await this.Commander.inquiry()
+		this.Debug.debug('Commander settings', commanderSettings)
+		this.settings = Object.assign({}, this.settings, commanderSettings)
+		this.Debug.debug('Merged commander settings with default settings')
+	}
+
+	// do everything whats needed before launch
+	async init(launchOptions = {}) {
 		this.settings = this.DEFAULT_SETTINGS
 		delete this.DEFAULT_SETTINGS
 
@@ -45,26 +72,25 @@ module.exports = class xHaust {
 			await this.runCommander()
 		}
 
-		// Override some settings if this is a test run
-		if (this.settings.test) {
-			this.Debug.warn('Test run, overriding some settings.')
+		if (launchOptions.settings) {
+			this.settings = Object.assign({}, this.settings, launchOptions.settings)
+		}
 
-			// this is a test, start the web server!
+		// Protocol processing
+		this.settings.uri = url.parse(this.settings.attackUri)
+		delete this.settings.attackUri
+
+		// Retry setting normalize
+		this.settings.retry = {
+			times: parseInt(this.settings.retries),
+			interval: function (retryCount) {
+				return 50 * Math.pow(2, retryCount)
+			}
 		}
 
 		this.Debug.debug(`Started ${packagejson.name} v${packagejson.version}`)
-		this.Debug.debug(this)
 
-		await this.preAttack()
-	}
-
-	// Will run commander to inquirer options from user
-	async runCommander() {
-		await banner.show()
-		const commanderSettings = await this.Commander.inquiry()
-		this.Debug.debug('Commander settings', commanderSettings)
-		this.settings = Object.assign({}, this.settings, commanderSettings)
-		this.Debug.debug('Merged commander settings with default settings', this.settings)
+		await tags.load(this)
 	}
 
 	async loadLists() {
@@ -85,14 +111,21 @@ module.exports = class xHaust {
 
 	// Everything that needs to be done before the attack loop can begin
 	async preAttack() {
+		await this.event.emit('preAttackPhaseStart')
 		this.Debug.debug('Pre attack phase')
-		this.Debug.debug('Type of attack:', this.settings.tags.join('-'), '@', this.settings.attackUri)
+		this.Debug.debug('Tags of attack:', this.settings.tags.join('-'), '@', this.settings.uri.href)
 		await this.loadLists()
-
 		await this.Analyzer.run()
+		await this.event.emit('preAttackPhaseEnd')
 	}
 
-	async postAttack() {}
+	async postAttack() {
+		await this.event.emit('postAttackPhaseStart')
+		await this.event.emit('postAttackPhaseEnd')
+	}
 
-	async attack() {}
+	async attack() {
+		await this.event.emit('attackPhaseStart')
+		await this.event.emit('attackPhaseEnd')
+	}
 }

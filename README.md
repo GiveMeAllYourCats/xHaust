@@ -4,7 +4,7 @@
 
 ### xHaust
 
-[![HitCount](http://hits.dwyl.io/givemeallyourcats/xhaust.svg)](http://hits.dwyl.io/givemeallyourcats/xhaust)
+[![HitCount](http://hits.dwyl.com/givemeallyourcats/xhaust.svg)](http://hits.dwyl.com/givemeallyourcats/xhaust)
 [![Package quality](https://packagequality.com/shield/xhaust.svg)](https://packagequality.com/#?package=xhaust)
 [![Build Status](https://travis-ci.org/givemeallyourcats/xhaust.png?branch=master)](https://travis-ci.org/givemeallyourcats/xhaust)
 [![Coverage Status](https://coveralls.io/repos/github/GiveMeAllYourCats/xHaust/badge.svg?branch=master)](https://coveralls.io/github/GiveMeAllYourCats/xHaust?branch=master)
