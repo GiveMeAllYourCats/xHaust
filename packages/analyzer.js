@@ -11,10 +11,16 @@ module.exports = class Analyzer extends require('../classes/package') {
 			uri: url
 		})
 
-		const dom = result.response.dom
-		const body = result.response.body
-		const results = {}
+		const results = await Promise.all([this.formAnalyze(result), this.httpServerAnalyze(result)])
+		console.log(results)
+		process.exit()
 
+		this.xHaust.Debug.success(`Analyze done`)
+		this.results = results
+		return results
+	}
+
+	async httpServerAnalyze() {
 		// Get page title
 		const titleRawText = dom.querySelector('title')
 		let pageTitle = titleRawText ? titleRawText.rawText : 'unknown'
@@ -45,7 +51,9 @@ module.exports = class Analyzer extends require('../classes/package') {
 		if (poweredBy) this.xHaust.Debug.info(`${url.host} seems to be run on: ${poweredBy}`)
 		if (cookie) this.xHaust.Debug.info(`${url.href} seems to have cookies`)
 		if (dnslookup) this.xHaust.Debug.info(`DNS Lookup: ${url.host} -> ${dnslookup}`)
+	}
 
+	async formAnalyze() {
 		// check for possible csrf token
 		let csrf = dom.querySelectorAll('input').filter(item => {
 			let found = false
@@ -116,9 +124,5 @@ module.exports = class Analyzer extends require('../classes/package') {
 		}
 		this.xHaust.settings.uri = newUrl
 		this.xHaust.Debug.info(`${url.href} action url is ${this.xHaust.settings.uri.href}`)
-
-		this.xHaust.Debug.success(`Analyze done`)
-		this.results = results
-		return results
 	}
 }

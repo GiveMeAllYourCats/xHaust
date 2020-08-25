@@ -48,6 +48,7 @@
   "dependencies": {
     "app-root-path": "^3.0.0",
     "async": "^3.2.0",
+    "axios": "^0.20.0",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.20",
     "bookshelf": "^1.2.0",
@@ -75,10 +76,16 @@
     "pretty-error": "^2.1.1",
     "prettycli": "^1.4.3",
     "prettyprint": "^1.1.2",
+    "proxy-list-random": "^1.0.2",
+    "proxy-lists": "^1.23.0",
+    "request": "^2.88.2",
     "stack-trace": "0.0.10",
     "stacktracey": "^2.0.14",
     "strip-ansi": "^6.0.0",
-    "tasktimer": "^3.0.0"
+    "tasktimer": "^3.0.0",
+    "tor-axios": "^1.0.9",
+    "tor-request": "^3.1.0",
+    "toragent": "^0.1.1"
   },
   "devDependencies": {
     "benchmark": "^2.1.4",

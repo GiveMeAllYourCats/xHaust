@@ -56,8 +56,8 @@ module.exports = class Http extends require('../classes/mods') {
 			}
 		}
 		setTimeout(timeout.bind(this), 2000)
-		await this.xHaust.Http.get({
-			uri: this.xHaust.settings.uri
+		await this.xHaust.Http.request({
+			url: this.xHaust.settings.uri.path
 		})
 		requesting = false
 		clearTimeout(timeout)

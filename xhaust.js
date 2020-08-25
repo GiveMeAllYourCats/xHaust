@@ -7,24 +7,25 @@ const List = require('./classes/list')
 const packagejson = require('./package.json')
 const Emittery = require('emittery')
 const cliProgress = require('cli-progress')
+const Http = require('./classes/http')
+
+const DEFAULT_SETTINGS = {
+	attackUri: 'http://127.0.0.1/admin/login',
+	user: undefined,
+	userFile: undefined,
+	pass: undefined,
+	passFile: undefined,
+	test: false,
+	mods: ['http', 'post', 'urlencoded'],
+	limitParallel: 120,
+	useGui: false,
+	retries: 10,
+	batchSize: 1000,
+	input: 'csrf=tokenCSRF',
+	output: 'username=:username:&password=:password:&csrf=:csrf:'
+}
 
 module.exports = class xHaust {
-	DEFAULT_SETTINGS = {
-		attackUri: 'http://127.0.0.1/admin/login',
-		user: undefined,
-		userFile: undefined,
-		pass: undefined,
-		passFile: undefined,
-		test: false,
-		mods: ['http', 'post', 'urlencoded'],
-		limitParallel: 120,
-		useGui: false,
-		retries: 10,
-		batchSize: 1000,
-		input: 'csrf=tokenCSRF',
-		output: 'username=:username:&password=:password:&csrf=:csrf:'
-	}
-
 	constructor() {
 		return new Promise(async (resolve, reject) => {
 			await this.create()
@@ -35,13 +36,14 @@ module.exports = class xHaust {
 	// Executed when xhaust is created
 	async create() {
 		this.root = require('app-root-path').path
+		this.Http = await new Http()
 		await pkg.load(this)
 		this.event = new Emittery()
 	}
 
 	// Entry is always made via the launch function, be it via unit test, cli or w/e
 	async launch(launchOptions = {}) {
-		if (this.DEFAULT_SETTINGS) {
+		if (DEFAULT_SETTINGS) {
 			await this.init(launchOptions)
 		}
 
@@ -59,8 +61,7 @@ module.exports = class xHaust {
 
 	// do everything whats needed before launch
 	async init(launchOptions = {}) {
-		this.settings = this.DEFAULT_SETTINGS
-		delete this.DEFAULT_SETTINGS
+		this.settings = DEFAULT_SETTINGS
 
 		// Debug filters
 		this.Debug.filter = ['debug', 'log', 'warn', 'info']
