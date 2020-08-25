@@ -14,11 +14,84 @@
 [![Node version](https://img.shields.io/node/v/xhaust.svg)](https://www.npmjs.com/package/xhaust)
 [![Help us and star this project](https://img.shields.io/github/stars/givemeallyourcats/xhaust.svg?style=social)](https://github.com/givemeallyourcats/xhaust)
 
+# THIS PROJECT IS NOT YET FINISHED, USE AT OWN RISK.
+
+Also please wait for pull requests as the basis of the application has not yet fully materialized yet.
+
 A fast brute forcer made in Node.js, mostly capable of HTTP attacks. The main mantra of xHaust is **speed, reliability and speed**
 
-**xHaust** achieves it's top speed by using the [async](https://caolan.github.io/async/v3/) module, it can execute password tries in parallel with a set limit. Note that Node.js is still single threaded and so is this library. Due to performance reasons the choice to not create multiple threads for this module has been respected, this is because most password tries are finished by the CPU before any other task completes and the CPU can easily exhaust (heh) request speeds before the requests can exhaust the CPU, making threads costly for this kind of goal.
+**xHaust** achieves it's top speed by using the [async](https://caolan.github.io/async/v3/) module, it can execute password tries in parallel with a set limit. Note that Node.js is still single threaded and so is this library. Due to performance reasons the choice to not create multiple threads (or processes for that matter) for this module has been respected, this is because most password tries are finished by the CPU before any other task completes. Be it I/O or network wise.
 
-# THIS PROJECT IS NOT YET FINISHED, PLEASE COME BACK LATER
+Consider the following threaded network application:
+
+```
+I want to bruteforce: xxxx ──> spawn thread
+                                  └──> HTTP Request
+                                         └──> HTTP Response
+I want to bruteforce: xxxx ──> spawn thread
+                                  └──> HTTP Request
+                                         └──> HTTP Response
+I want to bruteforce: xxxx ──> spawn thread
+                                  └──> HTTP Request
+                                         └──> HTTP Response
+...
+...
+```
+
+Very costly, instead lets just use the singlethreaded event loop
+
+```
+I want to bruteforce: xxxx ──> HTTP request ──> HTTP Response
+I want to bruteforce: xxxx ──> HTTP request ──> HTTP Response
+I want to bruteforce: xxxx ──> HTTP request ──> HTTP Response
+I want to bruteforce: xxxx ──> HTTP request ──> HTTP Response
+I want to bruteforce: xxxx ──> HTTP request ──> HTTP Response
+...
+...
+```
+
+this is much faster. Of course if in the future the application will support more protocols and a multi threaded approach is called for; then it will be programmed.
+
+**xHaust** uses batched brute forcing, which is just a fancy way of saying it will process x amount of brute force per attack; this can be configured via the **batchSize**. While this variable is enforced there is also one more into the equation: the **parallelLimit** parameter. Which ensures only a set amount of requests are active PER batch attack.
+
+Consider the following (unrealistic, because very small sizes) attack parameters:
+
+```
+ - parallelLimit: 5
+ - batchSize: 10
+```
+
+this means for every attack it will process 10 attacks with a limit of running 5 attacks at any time per batch.
+
+```python
+# Starts a batch attack of 10
+'Bruteforce request #1'  ──>  'Wait for response'
+'Bruteforce request #2'  ──>  'Wait for response'
+'Bruteforce request #3'  ──>  'Wait for response'
+'Bruteforce request #4'  ──>  'Wait for response'
+'Bruteforce Results'     <──  'Bruteforce response #1'
+'Bruteforce request #5'  ──>  'Wait for response'
+'Bruteforce request #6'  ──>  'Wait for response'
+# Wait for a request to finish because we hit the parallelLimit
+'Bruteforce Results'    <──   'Bruteforce response #2'
+'Bruteforce request #7'  ──>  'Wait for response'
+'Bruteforce Results'    <──   'Bruteforce response #3'
+'Bruteforce Results'    <──   'Bruteforce response #4'
+'Bruteforce request #8'  ──>  'Wait for response'
+'Bruteforce request #9'  ──>  'Wait for response'
+# Wait for a request to finish because we hit the parallelLimit
+'Bruteforce Results'    <──   'Bruteforce response #5'
+'Bruteforce request #8'  ──>  'Wait for response'
+'Bruteforce Results'    <──   'Bruteforce response #6'
+'Bruteforce Results'    <──   'Bruteforce response #7'
+'Bruteforce Results'    <──   'Bruteforce response #8'
+'Bruteforce Results'    <──   'Bruteforce response #9'
+'Bruteforce Results'    <──   'Bruteforce response #10'
+# Batch attack finished, we have all the results.
+
+```
+
+Two very important variable parameters in **xHaust** that have a big impact on brute force speed.
 
 #### Installation
 
