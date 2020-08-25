@@ -137,7 +137,7 @@ this means for every attack it will process 10 attacks with a limit of running 5
 'Bruteforce request #9'  ──>  'Wait for response'
 # Wait for a request to finish because we hit the parallelLimit
 'Bruteforce Results'    <──   'Bruteforce response #5'
-'Bruteforce request #8'  ──>  'Wait for response'
+'Bruteforce request #10' ──>  'Wait for response'
 'Bruteforce Results'    <──   'Bruteforce response #6'
 'Bruteforce Results'    <──   'Bruteforce response #7'
 'Bruteforce Results'    <──   'Bruteforce response #8'
