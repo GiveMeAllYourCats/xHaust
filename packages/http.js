@@ -5,9 +5,12 @@ const _ = require('lodash')
 const axios = require('axios')
 const SocksProxyAgent = require('socks-proxy-agent')
 const async = require('async')
+const faker = require('faker')
+const HTMLParser = require('fast-html-parser')
 
-module.exports = class Http {
+module.exports = class Http extends require('../classes/package') {
 	constructor(options = {}) {
+		super()
 		return new Promise(async (resolve, reject) => {
 			this.options = options
 			this.options.timeout = _.get(options, 'timeout', 20000)
@@ -21,7 +24,6 @@ module.exports = class Http {
 			// Create axios agent
 			this.axios = this.createAxios()
 			this.axios.defaults = Object.assign({}, { timeout: 5000 }, _.get(this.options, 'defaults.axios', {}))
-			console.log(this.axios.defaults)
 
 			// Create tor agent
 			if (this.options.tor) {
@@ -51,13 +53,30 @@ module.exports = class Http {
 			httpsAgent = new https.Agent({ keepAlive: true })
 		}
 
+		const headers = {}
+
+		if (this.options.randomUserAgent) {
+			headers['User-Agent'] = faker.internet.userAgent()
+		}
+
 		const instance = axios.create({
 			httpAgent,
 			httpsAgent,
+			headers,
 			timeout: 60000
 		})
 
 		return instance
+	}
+
+	async get(options) {
+		options.method = 'get'
+		return this.request(options)
+	}
+
+	async post(options) {
+		options.method = 'post'
+		return this.request(options)
 	}
 
 	async request(options) {
@@ -65,22 +84,53 @@ module.exports = class Http {
 			async.retry(
 				this.options.retry,
 				async () => {
-					console.log('req', options)
 					if (typeof options === 'string') options = { url: options }
+
+					// Select type of axios agent
+					// Normal
 					let axiosSelector = this.axios
 
+					// Tor
 					if (options.tor && this.options.tor) {
 						axiosSelector = this.axiosTor
 					}
 
+					// Proxy
 					if (options.proxy) {
 						axiosSelector = this.axiosProxy
 					}
 
-					return await axiosSelector(options)
+					// Make the request
+					try {
+						axiosSelector = await axiosSelector(options)
+					} catch (err) {
+						// Error 😨
+						if (err.response) {
+							/*
+							 * The request was made and the server responded with a
+							 * status code that falls out of the range of 2xx
+							 */
+							// return console.log(err.response.status)
+						} else if (err.request) {
+							/*
+							 * The request was made but no response was received, `err.request`
+							 * is an instance of XMLHttpRequest in the browser and an instance
+							 * of http.ClientRequest in Node.js
+							 */
+							// return console.log(err.request)
+						}
+						// Something happened in setting up the request and triggered an Error
+						// console.log('Error', err.message)
+						// return reject(new Error(err))
+					}
+
+					// Parse response with fast-html-parser
+					axiosSelector.dom = HTMLParser.parse(axiosSelector.data)
+
+					return axiosSelector
 				},
 				(err, result) => {
-					if (err) return reject(err)
+					if (err) return reject(new Error(err))
 					return resolve(result)
 				}
 			)

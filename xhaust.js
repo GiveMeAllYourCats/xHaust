@@ -7,7 +7,8 @@ const List = require('./classes/list')
 const packagejson = require('./package.json')
 const Emittery = require('emittery')
 const cliProgress = require('cli-progress')
-const Http = require('./classes/http')
+const root = require('app-root-path')
+const queryString = require('query-string')
 
 const DEFAULT_SETTINGS = {
 	attackUri: 'http://127.0.0.1/admin/login',
@@ -35,8 +36,7 @@ module.exports = class xHaust {
 
 	// Executed when xhaust is created
 	async create() {
-		this.root = require('app-root-path').path
-		this.Http = await new Http()
+		this.root = root.path
 		await pkg.load(this)
 		this.event = new Emittery()
 	}
@@ -75,6 +75,10 @@ module.exports = class xHaust {
 			this.settings = Object.assign({}, this.settings, launchOptions.settings)
 		}
 
+		// Input & Output normalize
+		this.settings.input = queryString.parse(this.settings.input)
+		this.settings.output = queryString.parse(this.settings.output)
+
 		// Protocol processing
 		this.settings.uri = url.parse(this.settings.attackUri)
 		delete this.settings.attackUri
@@ -86,9 +90,7 @@ module.exports = class xHaust {
 				return 50 * Math.pow(2, retryCount)
 			}
 		}
-
 		this.Debug.success(`Started ${packagejson.name} v${packagejson.version}`)
-
 		await mods.load(this)
 		return this
 	}

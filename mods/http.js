@@ -2,13 +2,14 @@ var ping = require('ping')
 const { PerformanceObserver, performance } = require('perf_hooks')
 
 module.exports = class Http extends require('../classes/mods') {
+	COMMANDER_OPTIONS = [['-Y, --yeet <yeet>', 'yeet my sketus']]
+
 	constructor() {
 		super()
 	}
 
 	async preAttackPhaseStart() {
 		this.xHaust.Debug.log('http preAttackPhaseStart')
-
 		this.measurements = {}
 		const obs = new PerformanceObserver(items => {
 			for (let item of items.getEntries()) {
@@ -56,14 +57,14 @@ module.exports = class Http extends require('../classes/mods') {
 			}
 		}
 		setTimeout(timeout.bind(this), 2000)
-		await this.xHaust.Http.request({
-			url: this.xHaust.settings.uri.path
+		await this.xHaust.Http.get({
+			url: this.xHaust.settings.uri.href
 		})
 		requesting = false
 		clearTimeout(timeout)
 		performance.measure('httpGet')
 
-		const results = await this.xHaust.Analyzer.httpFormSniff(this.xHaust.settings.uri)
+		const results = await this.xHaust.Analyzer.httpFormSniff(this.xHaust.settings.uri.href)
 	}
 
 	async preAttackPhaseEnd() {
@@ -71,11 +72,11 @@ module.exports = class Http extends require('../classes/mods') {
 	}
 
 	async attack(data) {
-		console.log(data)
-		console.log(this.xHaust.Analyzer)
 		await this.xHaust.Http.post({
-			uri: this.xHaust.settings.uri,
-			write: 'username=yeet'
+			url: this.xHaust.settings.uri,
+			data: {
+				username: 'yeet'
+			}
 		})
 	}
 }

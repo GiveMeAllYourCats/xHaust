@@ -62,10 +62,14 @@ module.exports = class Debug extends require('../classes/package') {
 		this.fatal(e)
 		// console.log(e.toString())
 		// console.log(stacktrace)
-		fs.appendFileSync(this.fatalFile, e.toString() + '\n')
-		fs.appendFileSync(this.fatalFile, stacktrace + '\n')
-		fs.appendFileSync(this.allFile, e.toString() + '\n')
-		fs.appendFileSync(this.allFile, stacktrace + '\n')
+		if (this.fatalFile) {
+			fs.appendFileSync(this.fatalFile, e.toString() + '\n')
+			fs.appendFileSync(this.fatalFile, stacktrace + '\n')
+		}
+		if (this.allFile) {
+			fs.appendFileSync(this.allFile, e.toString() + '\n')
+			fs.appendFileSync(this.allFile, stacktrace + '\n')
+		}
 		process.exit(1)
 	}
 

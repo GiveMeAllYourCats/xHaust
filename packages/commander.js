@@ -30,25 +30,19 @@ module.exports = class Commander extends require('../classes/package') {
 		program.option('-U, --userFile <userfile>', 'file full of usernames to use in attack payload')
 		program.option('-p, --pass <pass>', 'password to use in attack payload')
 		program.option('-P, --passFile <passfile>', 'file full of passwords to use in attack payload')
+		program.option('-m, --mods <mods>', 'mods to use for this attack (Ex. http-post-urlencoded)')
+		program.option('-i, --input <input>', 'input configuration string for mod files')
+		program.option('-o, --output <output>', 'output configuration string for mod files')
 		program.option('-l, --limitParallel <limitParallel>', 'max parallel requests at a time')
 		program.option('-b, --batchSize <batchSize>', 'the get and post requests batch size')
 		program.option('-r, --retries <retries>', 'Amount of retries before marking a http request as failed')
+
+		// inject mod files options
+		// for(let mod of this.)
+		program.option('-g, --useGui', 'enable gui')
 		program.option('-d, --dryRun <dryRun>', 'executes the attack in dry run mode')
 		program.option('-v, --verbose', 'Shows all debug messages')
 		program.option('-D, --debugFilter <debugFilter>', 'Filter debug messages')
-		program.option(
-			'-m, --mods <mods>',
-			'mods to use for this attack seperated by hypens (Ex. http-post-urlencoded)'
-		)
-		program.option(
-			'-i, --input <input>',
-			'input string to use as first scan structure data (Ex. form input names configurations)'
-		)
-		program.option(
-			'-o, --output <output>',
-			'output string to use as payload for attack, will replace :username: :password: and :csrf: with respectable values'
-		)
-		program.option('-g, --useGui', 'enable gui')
 
 		try {
 			program.parse(process.argv)

@@ -6,12 +6,12 @@ var bodyParser = require('body-parser')
 var handlebars = require('handlebars')
 const morgan = require('morgan')
 var csrfProtection = csrf({ cookie: true })
-var parseForm = bodyParser.urlencoded({ extended: false })
 
 const app = express()
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'))
 
 app.use(cookieParser())
+app.use(express.urlencoded({ extended: true }))
 
 server = app.listen(80, async () => {
 	app.get('/', (req, res) => {
@@ -39,7 +39,8 @@ server = app.listen(80, async () => {
 		`)({ csrfToken: req.csrfToken() })
 		)
 	})
-	app.post('/admin/login', parseForm, csrfProtection, (req, res) => {
+	app.post('/admin/login', (req, res) => {
+		console.log(req.body)
 		if (req.body.username === 'admin' && req.body.password === 'correctpassword') {
 			res.redirect('/loggedin')
 		}

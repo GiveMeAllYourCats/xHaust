@@ -7,13 +7,12 @@ module.exports = class Analyzer extends require('../classes/package') {
 
 	// Analyzer.httpFormSniff is run before a attack usually to get more info about the target server's http form
 	async httpFormSniff(url) {
-		const result = await this.xHaust.Http.get({
-			uri: url
+		this.url = require('url').parse(url)
+		this.result = await this.xHaust.Http.get({
+			url: this.url.href
 		})
 
-		const results = await Promise.all([this.formAnalyze(result), this.httpServerAnalyze(result)])
-		console.log(results)
-		process.exit()
+		const results = await Promise.all([this.formAnalyze(), this.httpServerAnalyze()])
 
 		this.xHaust.Debug.success(`Analyze done`)
 		this.results = results
@@ -22,24 +21,24 @@ module.exports = class Analyzer extends require('../classes/package') {
 
 	async httpServerAnalyze() {
 		// Get page title
-		const titleRawText = dom.querySelector('title')
+		const titleRawText = this.result.dom.querySelector('title')
 		let pageTitle = titleRawText ? titleRawText.rawText : 'unknown'
 
 		// Some header detection
 		let server
-		if (result.response.headers['server']) {
-			server = result.response.headers['server']
+		if (this.result.headers['server']) {
+			server = this.result.headers['server']
 		}
 		let poweredBy
-		if (result.response.headers['x-powered-by']) {
-			poweredBy = result.response.headers['x-powered-by']
+		if (this.result.headers['x-powered-by']) {
+			poweredBy = this.result.headers['x-powered-by']
 		}
 		let cookie
-		if (result.response.headers['set-cookie']) {
-			cookie = result.response.headers['set-cookie']
+		if (this.result.headers['set-cookie']) {
+			cookie = this.result.headers['set-cookie']
 		}
 		let dnslookup = await new Promise((resolve, reject) => {
-			dns.lookup(url.host, function (err, result) {
+			dns.lookup(this.url.host, function (err, result) {
 				if (err) {
 					return reject(err)
 				}
@@ -47,31 +46,34 @@ module.exports = class Analyzer extends require('../classes/package') {
 			})
 		})
 
-		if (server) this.xHaust.Debug.info(`${url.host} server seems to be: ${server}`)
-		if (poweredBy) this.xHaust.Debug.info(`${url.host} seems to be run on: ${poweredBy}`)
-		if (cookie) this.xHaust.Debug.info(`${url.href} seems to have cookies`)
-		if (dnslookup) this.xHaust.Debug.info(`DNS Lookup: ${url.host} -> ${dnslookup}`)
+		if (server) this.xHaust.Debug.info(`${this.url.host} server seems to be: ${server}`)
+		if (poweredBy) this.xHaust.Debug.info(`${this.url.host} seems to be run on: ${poweredBy}`)
+		if (cookie) this.xHaust.Debug.info(`${this.url.href} seems to have cookies`)
+		if (dnslookup) this.xHaust.Debug.info(`DNS Lookup: ${this.url.host} -> ${dnslookup}`)
+
+		return true
 	}
 
 	async formAnalyze() {
 		// check for possible csrf token
-		let csrf = dom.querySelectorAll('input').filter(item => {
+		let csrf = this.result.dom.querySelectorAll('input').filter(item => {
 			let found = false
 			if (item.rawAttrs.indexOf('token') !== -1) found = true
 			if (item.rawAttrs.indexOf('Token') !== -1) found = true
 			if (item.rawAttrs.indexOf('CSRF') !== -1) found = true
 			if (item.rawAttrs.indexOf('Csrf') !== -1) found = true
+			if (item.rawAttrs.indexOf('csrf') !== -1) found = true
 			return found
 		})
 		if (csrf.length === 0) csrf = undefined
 		if (csrf) {
-			this.xHaust.Debug.info(`${url.host} appears to have a csrf token`)
+			this.xHaust.Debug.info(`${this.url.host} appears to have a csrf token`)
 		} else {
-			this.xHaust.Debug.info(`${url.host} no csrf token found`)
+			this.xHaust.Debug.info(`${this.url.host} no csrf token found`)
 		}
 
 		// check for possible username
-		let username = dom.querySelectorAll('input').filter(item => {
+		let username = this.result.dom.querySelectorAll('input').filter(item => {
 			let found = false
 			if (item.rawAttrs.indexOf('username') !== -1) found = true
 			if (item.rawAttrs.indexOf('Username') !== -1) found = true
@@ -81,13 +83,13 @@ module.exports = class Analyzer extends require('../classes/package') {
 		})
 		if (username.length === 0) username = undefined
 		if (username) {
-			this.xHaust.Debug.info(`${url.host} appears to have a username input`)
+			this.xHaust.Debug.info(`${this.url.host} appears to have a username input`)
 		} else {
-			this.xHaust.Debug.info(`${url.host} no username input found`)
+			this.xHaust.Debug.info(`${this.url.host} no username input found`)
 		}
 
 		// check for possible password
-		let password = dom.querySelectorAll('input').filter(item => {
+		let password = this.result.dom.querySelectorAll('input').filter(item => {
 			let found = false
 			if (item.rawAttrs.indexOf('password') !== -1) found = true
 			if (item.rawAttrs.indexOf('Password') !== -1) found = true
@@ -97,14 +99,14 @@ module.exports = class Analyzer extends require('../classes/package') {
 		})
 		if (password.length === 0) password = undefined
 		if (password) {
-			this.xHaust.Debug.info(`${url.host} appears to have a password input`)
+			this.xHaust.Debug.info(`${this.url.host} appears to have a password input`)
 		} else {
-			this.xHaust.Debug.info(`${url.host} no password input found`)
+			this.xHaust.Debug.info(`${this.url.host} no password input found`)
 		}
 
 		// Get post action url
 		let actionUrl
-		for (let form of dom.querySelectorAll('form')) {
+		for (let form of this.result.dom.querySelectorAll('form')) {
 			actionUrl = form.attributes.action ? form.attributes.action : undefined
 			actionUrl = actionUrl.replace(/'/g, '')
 			actionUrl = actionUrl.replace(/"/g, '')
@@ -123,6 +125,8 @@ module.exports = class Analyzer extends require('../classes/package') {
 			)
 		}
 		this.xHaust.settings.uri = newUrl
-		this.xHaust.Debug.info(`${url.href} action url is ${this.xHaust.settings.uri.href}`)
+		this.xHaust.Debug.info(`${this.url.href} action url is ${this.xHaust.settings.uri.href}`)
+
+		return true
 	}
 }
