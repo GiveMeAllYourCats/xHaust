@@ -37,7 +37,7 @@ module.exports = class Commander extends require('../classes/package') {
 		program.option('-v, --verbose', 'Shows all debug messages')
 		program.option('-D, --debugFilter <debugFilter>', 'Filter debug messages')
 		program.option(
-			'-t, --mods <mods>',
+			'-m, --mods <mods>',
 			'mods to use for this attack seperated by hypens (Ex. http-post-urlencoded)'
 		)
 		program.option(
