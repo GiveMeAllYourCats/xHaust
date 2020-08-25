@@ -37,8 +37,8 @@ module.exports = class Commander extends require('../classes/package') {
 		program.option('-v, --verbose', 'Shows all debug messages')
 		program.option('-D, --debugFilter <debugFilter>', 'Filter debug messages')
 		program.option(
-			'-t, --tags <tags>',
-			'tags to use for this attack seperated by hypens (Ex. http-post-urlencoded)'
+			'-t, --mods <mods>',
+			'mods to use for this attack seperated by hypens (Ex. http-post-urlencoded)'
 		)
 		program.option(
 			'-i, --input <input>',
@@ -76,7 +76,7 @@ module.exports = class Commander extends require('../classes/package') {
 		if (program.userFile) output.userFile = program.userFile
 		if (program.pass) output.pass = program.pass
 		if (program.passFile) output.passFile = program.passFile
-		if (program.tags) output.tags = program.tags.split('-')
+		if (program.mods) output.mods = program.mods.split('-')
 		if (program.limitParallel) output.limitParallel = program.limitParallel
 		if (program.useGui) output.useGui = program.useGui
 		if (program.batchSize) output.batchSize = program.batchSize
@@ -107,8 +107,8 @@ module.exports = class Commander extends require('../classes/package') {
 			process.exit()
 		}
 
-		if (output.attackUri && !output.tags) {
-			this.xHaust.Debug.error(`--tags are needed for all attack types, except --test runs`)
+		if (output.attackUri && !output.mods) {
+			this.xHaust.Debug.error(`--mods are needed for all attack types, except --test runs`)
 			process.exit()
 		}
 

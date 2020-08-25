@@ -117,7 +117,7 @@ Options:
   -T, --test                           run attack on in built local http server for testing
   -v, --verbose                        Shows all debug messages
   -D, --debugFilter <debugFilter>      Filter debug messages
-  -t, --tags <tags>                    tags to use for this attack seperated by hypens (Ex. http-post-urlencoded)
+  -t, --mods <mods>                    mods to use for this attack seperated by hypens (Ex. http-post-urlencoded)
   -i, --input <input>                  input string to use as first scan structure data (Ex. form input names configurations)
   -o, --output <output>                output string to use as payload for attack, will replace :username: :password: and :csrf: with respectable values
   -g, --useGui                         enable gui
@@ -136,7 +136,7 @@ Options:
     ├── ...
     ├── xhaust.js               # Main class file of xHaust, handles most control flow
     ├── entry.js                # Entry file for unit tests, cli or otherwise
-    ├── tags                    # Tag files are to be seen as middleware files between various events in the xhaust lifecycle
+    ├── mods                    # Mod files are to be seen as middleware files between various events in the xhaust lifecycle
     ├── classes                 # Any class files that are not instanced automatically by xHaust
     ├── logs                    # Log files created by xHaust
     ├── metadata                # Metadata folder stores arbitrary data for example attack files
