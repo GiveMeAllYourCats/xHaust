@@ -1,5 +1,5 @@
-// Tags bootstrapper
-module.exports = class Tags {
+// Mods bootstrapper
+module.exports = class Mods {
 	constructor() {}
 
 	async passData(xHaust) {

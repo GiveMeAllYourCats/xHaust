@@ -1,7 +1,7 @@
 const path = require('path')
 const url = require('url')
 const pkg = require('./modules/pkg')
-const tags = require('./modules/tags')
+const mods = require('./modules/mods')
 const banner = require('./modules/banner')
 const List = require('./classes/list')
 const packagejson = require('./package.json')
@@ -16,7 +16,7 @@ module.exports = class xHaust {
 		pass: undefined,
 		passFile: undefined,
 		test: false,
-		tags: ['http', 'post', 'urlencoded'],
+		mods: ['http', 'post', 'urlencoded'],
 		limitParallel: 120,
 		useGui: false,
 		retries: 10,
@@ -88,7 +88,7 @@ module.exports = class xHaust {
 
 		this.Debug.success(`Started ${packagejson.name} v${packagejson.version}`)
 
-		await tags.load(this)
+		await mods.load(this)
 		return this
 	}
 
@@ -111,7 +111,7 @@ module.exports = class xHaust {
 	// Everything that needs to be done before the attack loop can begin
 	async preAttack() {
 		this.Debug.debug('Pre attack phase')
-		this.Debug.debug('Tags of attack:', this.settings.tags.join('-'), '@', this.settings.uri.href)
+		this.Debug.debug('mods of attack:', this.settings.mods.join('-'), '@', this.settings.uri.href)
 		await this.loadLists()
 		await this.event.emit('preAttackPhaseStart')
 		this.total = 0

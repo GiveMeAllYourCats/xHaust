@@ -1,7 +1,7 @@
 var ping = require('ping')
 const { PerformanceObserver, performance } = require('perf_hooks')
 
-module.exports = class Http extends require('../classes/tags') {
+module.exports = class Http extends require('../classes/mods') {
 	constructor() {
 		super()
 	}
