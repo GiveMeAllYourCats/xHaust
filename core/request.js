@@ -8,38 +8,35 @@ const async = require('async')
 const faker = require('faker')
 const HTMLParser = require('fast-html-parser')
 
-module.exports = class Http extends require('../classes/package') {
-	constructor(options = {}) {
-		super()
-		return new Promise(async (resolve, reject) => {
-			this.options = options
-			this.options.timeout = _.get(options, 'timeout', 20000)
-			this.options.retry = _.get(options, 'retry', {
-				times: 2,
-				interval: function (retryCount) {
-					return 50 * Math.pow(2, retryCount)
-				}
-			})
+module.exports = class Request extends require('./') {
+	ORDER = 100
+	OPTIONS = [
+		['-t, --tor', 'use tor for all HTTP(s) requests', false],
+		['-r, --retries <retries>', 'Amount of retries before marking a http request as failed', 6],
+		['-T, --timeout <timeout>', 'When a request is considered timed-out in milliseconds', 10000]
+	]
 
-			// Create axios agent
-			this.axios = this.createAxios()
-			this.axios.defaults = Object.assign({}, { timeout: 5000 }, _.get(this.options, 'defaults.axios', {}))
-
-			// Create tor agent
-			if (this.options.tor) {
-				const agent = await TorAgent.create()
-				this.axiosTor = this.createAxios({ proxy: { host: agent.socksHost, port: agent.socksPort } })
+	async start() {
+		this.xhaust.settings.retry = _.get(this.xhaust.settings, 'retries', {
+			times: 2,
+			interval: function (retryCount) {
+				return 50 * Math.pow(2, retryCount)
 			}
-
-			// Create proxy agent
-			if (this.options.socksProxy) {
-				const host = this.options.socksProxy.split(':')[0]
-				const port = this.options.socksProxy.split(':')[1]
-				this.axiosProxy = this.createAxios({ proxy: { host, port } })
-			}
-
-			return resolve(this)
 		})
+		// Create axios agent
+		if (this.xhaust.settings.tor) {
+			// Tor agent
+			const agent = await TorAgent.create()
+			this.axios = this.createAxios({ proxy: { host: agent.socksHost, port: agent.socksPort } })
+		} else if (this.xhaust.settings.socksProxy) {
+			// socks proxy
+			const host = this.xhaust.settings.socksProxy.split(':')[0]
+			const port = this.xhaust.settings.socksProxy.split(':')[1]
+			this.axios = this.createAxios({ proxy: { host, port } })
+		} else {
+			// normal
+			this.axios = this.createAxios()
+		}
 	}
 
 	createAxios(options = {}) {
@@ -55,7 +52,7 @@ module.exports = class Http extends require('../classes/package') {
 
 		const headers = {}
 
-		if (this.options.randomUserAgent) {
+		if (this.xhaust.settings.randomUserAgent) {
 			headers['User-Agent'] = faker.internet.userAgent()
 		}
 
@@ -82,29 +79,18 @@ module.exports = class Http extends require('../classes/package') {
 	async request(options) {
 		return new Promise((resolve, reject) => {
 			async.retry(
-				this.options.retry,
+				this.xhaust.settings.retry,
 				async () => {
 					if (typeof options === 'string') options = { url: options }
 
-					// Select type of axios agent
-					// Normal
-					let axiosSelector = this.axios
-
-					// Tor
-					if (options.tor && this.options.tor) {
-						axiosSelector = this.axiosTor
-					}
-
-					// Proxy
-					if (options.proxy) {
-						axiosSelector = this.axiosProxy
-					}
-
 					// Make the request
+					// console.log(options, selector)
+					let response
 					try {
-						axiosSelector = await axiosSelector(options)
+						response = await this.axios(options)
 					} catch (err) {
 						// Error 😨
+						// TODO: catch, friendly display etc
 						if (err.response) {
 							/*
 							 * The request was made and the server responded with a
@@ -124,10 +110,10 @@ module.exports = class Http extends require('../classes/package') {
 						// return reject(new Error(err))
 					}
 
-					// Parse response with fast-html-parser
-					axiosSelector.dom = HTMLParser.parse(axiosSelector.data)
+					// // Parse response with fast-html-parser
+					// response.dom = HTMLParser.parse(response.data)
 
-					return axiosSelector
+					return response
 				},
 				(err, result) => {
 					if (err) return reject(new Error(err))

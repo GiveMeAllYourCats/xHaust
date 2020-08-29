@@ -7,13 +7,16 @@ const stripAnsi = require('strip-ansi')
 const StackTracey = require('stacktracey')
 const { bright } = require('ansicolor')
 const packagejson = require('../package.json')
+const root = require('app-root-path').path
 
-module.exports = class Debug extends require('../classes/package') {
-	constructor() {
-		super()
-		this.logToFile = true
-		this.logToConsole = true
-		this.firstStart = true
+module.exports = class Debug extends require('./') {
+	ORDER = 0
+	OPTIONS = [
+		['-v, --verbose', 'shows all debug messages'],
+		['-D, --debugFilter <debugFilter>', 'filter debug messages']
+	]
+
+	async start() {
 		this.filters = ['']
 
 		process.on('uncaughtException', async e => {
@@ -52,24 +55,11 @@ module.exports = class Debug extends require('../classes/package') {
 		}
 	}
 
-	async boot() {
-		await this.createDebugger()
-	}
-
 	async throw(e) {
 		const stacktrace = (await new StackTracey(e).cleanAsync()).asTable()
-		this.logToFile = false
 		this.fatal(e)
 		// console.log(e.toString())
 		// console.log(stacktrace)
-		if (this.fatalFile) {
-			fs.appendFileSync(this.fatalFile, e.toString() + '\n')
-			fs.appendFileSync(this.fatalFile, stacktrace + '\n')
-		}
-		if (this.allFile) {
-			fs.appendFileSync(this.allFile, e.toString() + '\n')
-			fs.appendFileSync(this.allFile, stacktrace + '\n')
-		}
 		process.exit(1)
 	}
 
@@ -82,7 +72,6 @@ module.exports = class Debug extends require('../classes/package') {
 			return
 		}
 		const time = `${chalk.keyword('darkgrey')(moment().format('HH:mm:ss'))}`
-		const stream = this.stream
 		const colors = {
 			log: {
 				bg: chalk.keyword('white'),
@@ -138,57 +127,7 @@ module.exports = class Debug extends require('../classes/package') {
 			})
 			.before('render')
 
-		const fileLogger = require('ololog')
-			.configure({
-				locate: false,
-				stringify: {
-					maxDepth: 2,
-					maxLength: 999999,
-					maxArrayLength: 20,
-					maxObjectLength: 10,
-					maxStringLength: 9000
-				},
-				time: timeObject
-			})
-			.before('render')
-
 		const consoleMessage = consoleLogger(...messages)
-		const fileMessage = stripAnsi(fileLogger(...messages))
-		if (this.logToConsole) {
-			console.log(consoleMessage)
-		}
-		if (this.logToFile) {
-			if (!stream[type]) {
-				throw new Error(`the stream ${type} is not defined`)
-			}
-			stream[type].write(`${fileMessage}\n`)
-			stream.all.write(`${fileMessage}\n`)
-		}
-	}
-
-	async createDebugger() {
-		this.trace = require('ololog').before('render')
-		const opts = { flags: 'a' }
-		mkdirp.sync(path.join(this.xHaust.root, 'logs'))
-		this.stream = {}
-		for (let type of ['log', 'debug', 'info', 'warn', 'error', 'success']) {
-			const file = path.join(
-				__dirname,
-				'..',
-				'logs',
-				`${moment().format('YYYY-MM-DD')}.${type.toUpperCase()}.txt`
-			)
-			this.stream[type] = fs.createWriteStream(file, opts)
-		}
-
-		this.allFile = path.join(this.xHaust.root, 'logs', `${moment().format('YYYY-MM-DD')}.ALL.txt`)
-		this.stream.all = fs.createWriteStream(this.allFile, opts)
-
-		this.fatalFile = path.join(this.xHaust.root, 'logs', `${moment().format('YYYY-MM-DD')}.FATAL.txt`)
-
-		if (!fs.existsSync(this.fatalFile)) {
-			const stream = fs.createWriteStream(this.fatalFile, opts)
-			stream.close()
-		}
+		console.log(consoleMessage)
 	}
 }
