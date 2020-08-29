@@ -31,14 +31,34 @@ npm install -g xhaust
 Usage: xhaust [options]
 
 Options:
-  -V, --version                        output the version number
-  -h, --help                           display help for command
+  -V, --version                    output the version number
+  -a, --attackUri <attackUri>      URI to attack
+  -u, --user <user>                username to use in attack payload (default: "admin")
+  -U, --userFile <userFile>        file full of usernames to use in attack payload
+  -p, --pass <pass>                password to use in attack payload
+  -P, --passFile <passfile>        file full of passwords to use in attack payload (default: "/opt/rockyou.txt")
+  -t, --type <type>                payload type to use for this attack (Ex. http-form-post) (default: "web-form-post")
+  -i, --input <input>              input configuration for payload (default: "csrf=tokenCSRF")
+  -o, --output <output>            output configuration for payload (default: "username=:username:&password=:password:&csrf=:csrf:")
+  -l, --maxParallel <maxParallel>  max parallel attack in one batch (default: 80)
+  -b, --batchSize <batchSize>      attack batch size length (default: 1000)
+  -d, --dryRun                     executes the attack in dry run mode (default: false)
+  
+  Debug settings                  
+  -v, --verbose                    shows all debug messages
+  -D, --debugFilter <debugFilter>  filter debug messages
+  
+  Http settings                   
+  -T, --tor                        use tor for all HTTP(s) requests (default: false)
+  -s, --socksProxy <socksProxy>    can use a socks5 proxy url. Format: ip:port
+  -r, --retries <retries>          amount of retries before marking a http request as failed (default: 6)
+  -h, --help                       display help for command                                                                                    
 ```
 
 ##### Example call:
 
 ```bash
-  $ xhaust -t -a http://somewebsite.com http-post-urlencoded -u admin -P passwords.txt -s 1000 -l 130 -i "csrf=token" -o "username=:username:&password=:password:&csrftoken=:csrf:"`
+  $ xhaust -v -a http://127.0.0.1/admin/login -u admin -P /opt/rockyou.txt -t http-form-post
 ```
 
 #### Project Layout
