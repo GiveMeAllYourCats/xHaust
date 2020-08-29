@@ -1,186 +1,161 @@
-const path = require('path')
-const url = require('url')
-const pkg = require('./modules/pkg')
-const mods = require('./modules/mods')
-const banner = require('./modules/banner')
-const List = require('./classes/list')
-const packagejson = require('./package.json')
-const Emittery = require('emittery')
-const cliProgress = require('cli-progress')
-const root = require('app-root-path')
-const queryString = require('query-string')
+/*
+MIT License
 
-const DEFAULT_SETTINGS = {
-	attackUri: 'http://127.0.0.1/admin/login',
-	user: undefined,
-	userFile: undefined,
-	pass: undefined,
-	passFile: undefined,
-	test: false,
-	mods: ['http', 'post', 'urlencoded'],
-	limitParallel: 120,
-	useGui: false,
-	retries: 10,
-	batchSize: 1000,
-	input: 'csrf=tokenCSRF',
-	output: 'username=:username:&password=:password:&csrf=:csrf:'
-}
+Copyright (c) 2020 GiveMeAllYourCats
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+const glob = require('glob')
+const fs = require('fs')
+const path = require('path')
+const cliProgress = require('cli-progress')
+const _ = require('lodash')
+const async = require('async')
+const Emittery = require('emittery')
 
 module.exports = class xHaust {
-	constructor() {
+	constructor(startupSettings) {
 		return new Promise(async (resolve, reject) => {
-			await this.create()
+			this.startupSettings = startupSettings
+			this.event = new Emittery()
+			try {
+				await this.loadCores()
+				await this.loadPayload()
+				await this.boot()
+			} catch (e) {
+				return reject(e)
+			}
 			return resolve(this)
 		})
 	}
 
-	// Executed when xhaust is created
-	async create() {
-		this.root = root.path
-		await pkg.load(this)
-		this.event = new Emittery()
+	async loadPayload() {
+		if (!fs.existsSync(`./payload/${this.settings.type}.js`))
+			throw new Error(`The file ./payload/${this.settings.type}.js does not exist`)
+		this.payload = await new (await require(`./payload/${this.settings.type}.js`))()
+		this.payload.init(this)
+		if (this.payload.start) this.payload.start()
 	}
 
-	// Entry is always made via the launch function, be it via unit test, cli or w/e
-	async launch(launchOptions = {}) {
-		if (DEFAULT_SETTINGS) {
-			await this.init(launchOptions)
+	async loadCores() {
+		this['core'] = []
+		for (let file of glob.sync(`./${'core'}/*.js`)) {
+			const name = path.basename(file, '.js')
+			if (name === 'index') continue
+			const instance = await new (await require(file))()
+			this['core'].push(instance)
+		}
+		this['core'] = _.orderBy(this['core'], 'ORDER', 'asc')
+
+		for (let obj of this['core']) {
+			if (!obj.init) throw new Error(`${obj.constructor.name} does not have a init function`)
+			await obj.init(this)
+			if (this[obj.constructor.name]) throw new Error(`${obj.constructor.name} already exists`)
+			this[obj.constructor.name] = obj
 		}
 
-		return await this.preAttack()
-	}
-
-	// Will run commander to inquirer options from user
-	async runCommander() {
-		await banner.show()
-		const commanderSettings = await this.Commander.inquiry()
-		this.Debug.debug('Commander settings', commanderSettings)
-		this.settings = Object.assign({}, this.settings, commanderSettings)
-		this.Debug.debug('Merged commander settings with default settings')
-	}
-
-	// do everything whats needed before launch
-	async init(launchOptions = {}) {
-		this.settings = DEFAULT_SETTINGS
-
-		// Debug filters
-		this.Debug.filter = ['debug', 'log', 'warn', 'info']
-		this.Debug.filter = ['nothing'] // Debug env flag here?
-
-		if (launchOptions.commander) {
-			await this.runCommander()
-		}
-
-		if (launchOptions.settings) {
-			this.settings = Object.assign({}, this.settings, launchOptions.settings)
-		}
-
-		// Input & Output normalize
-		this.settings.input = queryString.parse(this.settings.input)
-		this.settings.output = queryString.parse(this.settings.output)
-
-		// Protocol processing
-		this.settings.uri = url.parse(this.settings.attackUri)
-		delete this.settings.attackUri
-
-		// Retry setting normalize
-		this.settings.retry = {
-			times: parseInt(this.settings.retries),
-			interval: function (retryCount) {
-				return 50 * Math.pow(2, retryCount)
+		for (let obj of this['core']) {
+			if (obj.start) {
+				await obj.start()
 			}
 		}
-		this.Debug.success(`Started ${packagejson.name} v${packagejson.version}`)
-		await mods.load(this)
-		return this
 	}
 
-	async loadLists() {
-		this.Debug.debug('Loading all needed lists')
-		this.settings.bruteforce = {}
-		this.settings.bruteforce.user = this.settings.user
+	async boot() {
+		await this.event.emitSerial('preAttack')
+		this.currentUser = (await this.getUser())[0]
+		await this.getTotalAttack()
+		await this.startProgress()
+		while (this.doneAttacks <= this.totalAttacks) await this.attackLoop()
+		await this.event.emitSerial('postAttack')
+	}
+
+	async startProgress() {
+		this.progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
+		this.progressBar.start(this.totalAttacks, 0)
+	}
+
+	async quit(reason = 'Unknown :(') {
+		this.progressBar.update(this.totalAttacks)
+		this.progressBar.stop()
+		await this.event.emitSerial('quit')
+		this.Debug.warn(`Quitting xHaust, reason: ${reason}`)
+		this.Banner.footer()
+		process.exit()
+	}
+
+	async attackLoop() {
+		await this.event.emitSerial('preLoop')
+		const [username, passwords] = await this.getBatch()
+
+		await async.eachLimit(passwords, this.settings.maxParallel, async password => {
+			await this.payload.attack({ username, password })
+			this.doneAttacks++
+			this.progressBar.update(this.doneAttacks)
+		})
+		await this.event.emitSerial('postLoop')
+	}
+
+	async getTotalAttack() {
+		this.doneAttacks = 0
+		let users = 1
+		let passwords = 1
+
 		if (this.settings.userFile) {
-			this.Debug.debug(`Using userFile "${this.settings.userFile}"`)
-			this.settings.bruteforce.user = await new List(this.settings.userFile)
+			users = this.wordlist.username.total
 		}
 
-		this.settings.bruteforce.pass = this.settings.pass
 		if (this.settings.passFile) {
-			this.Debug.debug(`Using passFile "${this.settings.passFile}"`)
-			this.settings.bruteforce.pass = await new List(this.settings.passFile)
+			passwords = this.wordlist.password.total
 		}
+
+		this.totalAttacks = users * passwords
 	}
 
-	// Everything that needs to be done before the attack loop can begin
-	async preAttack() {
-		this.Debug.debug('Pre attack phase')
-		this.Debug.debug('mods of attack:', this.settings.mods.join('-'), '@', this.settings.uri.href)
-		await this.loadLists()
-		await this.event.emit('preAttackPhaseStart')
-		this.total = 0
-		this.done = 0
-		this.usernames = 0
-		this.passwords = 0
-		if (this.settings.bruteforce.user.constructor.name === 'List') {
-			this.usernames += this.settings.bruteforce.user.total
-		} else {
-			this.usernames = 1
-		}
-		if (this.settings.bruteforce.pass.constructor.name === 'List') {
-			this.passwords += this.settings.bruteforce.pass.total
-		} else {
-			this.passwords = 1
-		}
-		this.total = this.usernames * this.passwords
-
-		await this.event.emit('preAttackPhaseEnd')
-		await this.attack()
+	async getUser(amount = 1) {
+		return this.settings.userFile === undefined ? [this.settings.user] : await this.wordlist.username.get(amount)
 	}
 
-	async attack() {
-		await this.event.emit('attackPhaseStart')
+	async getPass(amount = 1) {
+		return this.settings.passFile === undefined ? [this.settings.pass] : await this.wordlist.password.get(amount)
+	}
 
-		this.bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
-		this.bar.start(this.total, 0)
-
-		let finished = false
-		while (!finished) {
-			// Get next password
-			let password = this.settings.bruteforce.pass
-			if (password.constructor.name === 'List') {
-				let nextPassword = await password.next()
-				if (nextPassword.done) {
-					return await this.postAttack('passwordlist exhausted')
+	async getBatch() {
+		await this.event.emitSerial('preBatch')
+		const passwords = await this.getPass(this.settings.batchSize)
+		if (passwords.length === 0) {
+			await this.wordlist.password.reset()
+			if (this.wordlist.username) {
+				// list
+				const oldUser = this.currentUser
+				this.currentUser = (await this.getUser())[0]
+				if (!this.currentUser) {
+					return await this.quit('Usernames/Passwords depleted!')
 				}
-				password = nextPassword.value
+			} else {
+				// single
+				return await this.quit('Passwords depleted!')
 			}
-
-			// Get next username
-			let username = this.settings.bruteforce.user
-			if (username.constructor.name === 'List') {
-				let nextUsername = await username.next()
-				if (nextUsername.done) {
-					return await this.postAttack('userlist exhausted')
-				}
-				username = nextUsername.value
-			}
-
-			// this.Debug.log({ username, password })
-			await this.event.emit('attack', { username, password })
-			this.done++
-			this.bar.update(this.done)
+			return await this.getBatch()
 		}
-
-		this.bar.stop()
-
-		await this.event.emit('attackPhaseEnd')
-	}
-
-	async postAttack(reason = 'unknown') {
-		await this.event.emit('postAttackPhaseStart')
-		await this.event.emit('postAttackPhaseEnd')
-
-		console.log(`\n\nQuitting xHaust.\nReason: ${reason}\n\nByeBye...`)
-		process.exit() // we are done here!
+		await this.event.emitSerial('postBatch')
+		return [await this.currentUser, passwords]
 	}
 }

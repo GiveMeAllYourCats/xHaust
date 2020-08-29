@@ -4,7 +4,6 @@
 
 ### xHaust
 
-[![HitCount](http://hits.dwyl.com/GiveMeAllYourCats/xHaust.svg)](http://hits.dwyl.com/GiveMeAllYourCats/xHaust)
 [![Package quality](https://packagequality.com/shield/xhaust.svg)](https://packagequality.com/#?package=xhaust)
 [![Build Status](https://travis-ci.org/givemeallyourcats/xhaust.png?branch=master)](https://travis-ci.org/givemeallyourcats/xhaust)
 [![Coverage Status](https://coveralls.io/repos/github/GiveMeAllYourCats/xHaust/badge.svg?branch=master)](https://coveralls.io/github/GiveMeAllYourCats/xHaust?branch=master)
@@ -33,21 +32,6 @@ Usage: xhaust [options]
 
 Options:
   -V, --version                        output the version number
-  -a, --attackUri <attackUri>          protocol URI to attack
-  -u, --user <user>                    username to use in attack payload
-  -U, --userFile <userfile>            file full of usernames to use in attack payload
-  -p, --pass <pass>                    password to use in attack payload
-  -P, --passFile <passfile>            file full of passwords to use in attack payload
-  -l, --limitParallel <limitParallel>  max parallel requests at a time
-  -b, --batchSize <batchSize>          the get and post requests batch size
-  -d, --dryRun <dryRun>                executes the attack in dry run mode
-  -T, --test                           run attack on in built local http server for testing
-  -v, --verbose                        Shows all debug messages
-  -D, --debugFilter <debugFilter>      Filter debug messages
-  -t, --mods <mods>                    mods to use for this attack seperated by hypens (Ex. http-post-urlencoded)
-  -i, --input <input>                  input string to use as first scan structure data (Ex. form input names configurations)
-  -o, --output <output>                output string to use as payload for attack, will replace :username: :password: and :csrf: with respectable values
-  -g, --useGui                         enable gui
   -h, --help                           display help for command
 ```
 
@@ -63,12 +47,11 @@ Options:
     ├── ...
     ├── xhaust.js               # Main class file of xHaust, handles most control flow
     ├── entry.js                # Entry file for unit tests, cli or otherwise
-    ├── mods                    # Mod files are to be seen as middleware files between various events in the xhaust lifecycle
-    ├── classes                 # Any class files that are not instanced automatically by xHaust
+    ├── core                    # Core files are xhaust core classes and can listen to various events in the xhaust lifecycle
+    ├── payload                 # Payload files are determine specific attack strategies, like a web-form-post one
     ├── logs                    # Log files created by xHaust
-    ├── metadata                # Metadata folder stores arbitrary data for example attack files
-    ├── modules                 # A simple module object that performs basic tasks
-    ├── packages                # Packages are classes that are imported and instanced by xHaust and are the internal workings
+    ├── bin                     # Launch file for global npm install
+    ├── coverage                # Coverage files
     ├── tests                   # Test folder that holds all test data
     └── ...
 
@@ -144,15 +127,17 @@ this means for every attack it will process 10 attacks with a limit of running 5
 'Bruteforce Results'    <──   'Bruteforce response #9'
 'Bruteforce Results'    <──   'Bruteforce response #10'
 # Batch attack finished, we have all the results.
+# Start a new batch attack of 10
+# Etc, etc...
 
 ```
 
 Two very important variable parameters in `xHaust` that have a big impact on brute force speed.
 
-#### Mod files
+#### Core files
 
-The power of `xHaust` mod files is the ability to easily add any desirable code between events throughout the lifecycle of a `xHaust` instance.
+The power of `xHaust` core files is the ability to easily add any desirable code between events throughout the lifecycle of a `xHaust` instance.
 
-Mod files have the ability to 'hook' or subscribe into events of `xHaust`. They are loaded in order given by the mod file author themselfs. The user of `xHaust` chooses what mod files to use for their attack via the `-m, --mods <mods>` parameter.
+Core files have the ability to 'hook' or subscribe into events of `xHaust`. They are loaded in order given by the mod file author themselfs. The user of `xHaust` chooses what core files to use in what way through specifying through process parameters.
 
-Futher on; when mod files hook into these events and the event fires; then `xHaust` will `await` the listeners promises before continuing the program. Making it very easy to hook code into `xHaust` via these so called mod files.
+Futher on; when core files hook into these events and the event fires; then `xHaust` will `await` the listeners promises before continuing the program. Making it very easy to hook code into `xHaust` via these so called core files.
