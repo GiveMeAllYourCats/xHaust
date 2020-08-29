@@ -4,7 +4,6 @@
 
 ### xHaust
 
-[![HitCount](http://hits.dwyl.com/GiveMeAllYourCats/xHaust.svg)](http://hits.dwyl.com/GiveMeAllYourCats/xHaust)
 [![Package quality](https://packagequality.com/shield/xhaust.svg)](https://packagequality.com/#?package=xhaust)
 [![Build Status](https://travis-ci.org/givemeallyourcats/xhaust.png?branch=master)](https://travis-ci.org/givemeallyourcats/xhaust)
 [![Coverage Status](https://coveralls.io/repos/github/GiveMeAllYourCats/xHaust/badge.svg?branch=master)](https://coveralls.io/github/GiveMeAllYourCats/xHaust?branch=master)
@@ -49,6 +48,7 @@ Options:
     ├── xhaust.js               # Main class file of xHaust, handles most control flow
     ├── entry.js                # Entry file for unit tests, cli or otherwise
     ├── core                    # Core files are xhaust core classes and can listen to various events in the xhaust lifecycle
+    ├── payload                 # Payload files are determine specific attack strategies, like a web-form-post one
     ├── logs                    # Log files created by xHaust
     ├── bin                     # Launch file for global npm install
     ├── coverage                # Coverage files

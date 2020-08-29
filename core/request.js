@@ -11,18 +11,18 @@ const HTMLParser = require('fast-html-parser')
 module.exports = class Request extends require('./') {
 	ORDER = 100
 	OPTIONS = [
-		['-t, --tor', 'use tor for all HTTP(s) requests', false],
-		['-r, --retries <retries>', 'Amount of retries before marking a http request as failed', 6],
-		['-T, --timeout <timeout>', 'When a request is considered timed-out in milliseconds', 10000]
+		['T', 'tor', 'use tor for all HTTP(s) requests', false],
+		['s', 'socksProxy <socksProxy>', 'can use a socks5 proxy url. Format: ip:port'],
+		['r', 'retries <retries>', 'amount of retries before marking a http request as failed', 6]
 	]
 
 	async start() {
-		this.xhaust.settings.retry = _.get(this.xhaust.settings, 'retries', {
-			times: 2,
+		this.retry = {
+			times: this.xhaust.settings.retries,
 			interval: function (retryCount) {
 				return 50 * Math.pow(2, retryCount)
 			}
-		})
+		}
 		// Create axios agent
 		if (this.xhaust.settings.tor) {
 			// Tor agent
@@ -79,7 +79,7 @@ module.exports = class Request extends require('./') {
 	async request(options) {
 		return new Promise((resolve, reject) => {
 			async.retry(
-				this.xhaust.settings.retry,
+				this.retry,
 				async () => {
 					if (typeof options === 'string') options = { url: options }
 

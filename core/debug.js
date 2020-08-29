@@ -12,8 +12,8 @@ const root = require('app-root-path').path
 module.exports = class Debug extends require('./') {
 	ORDER = 0
 	OPTIONS = [
-		['-v, --verbose', 'shows all debug messages'],
-		['-D, --debugFilter <debugFilter>', 'filter debug messages']
+		['v', 'verbose', 'shows all debug messages'],
+		['D', 'debugFilter <debugFilter>', 'filter debug messages']
 	]
 
 	async start() {

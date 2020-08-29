@@ -6,27 +6,18 @@ module.exports = class Banner extends require('./') {
 	ORDER = 1
 	OPTIONS = []
 
-	events() {
-		return {
-			postAttack: async () => {
-				await this.banner()
-			}
-		}
-	}
-
 	async start() {
-		await this.show()
+		await this.banner()
 	}
 
-	async banner() {
+	async footer() {
 		console.log(`
   xHaust is a tool to crack username/password pairs.
   Licensed under Massachusetts Institute of Technology (MIT) License. 
   The newest version is always available at: https://github.com/GiveMeAllYourCats/xHaust
-  Please don't use in military or secret service organizations, or for illegal purposes.
-  Please do not use on services, or usernames that you do not own.`)
+  This tool is to be used for educational purposes ONLY!`)
 	}
-	async show() {
+	async banner() {
 		return await new Promise((resolve, reject) => {
 			figlet(
 				'xHaust',

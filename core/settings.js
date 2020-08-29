@@ -3,25 +3,27 @@ const packagejson = require('../package.json')
 const url = require('url')
 const colorize = require('json-colorizer')
 const chalk = require('chalk')
+const _ = require('lodash')
 
 module.exports = class Settings extends require('./') {
 	ORDER = 2
 	OPTIONS = [
-		['-a, --attackUri <attackUri>', 'URI to attack'],
-		['-u, --user <user>', 'username to use in attack payload', 'admin'],
-		['-U, --userFile <userFile>', 'file full of usernames to use in attack payload'],
-		['-p, --pass <pass>', 'password to use in attack payload'],
-		['-P, --passFile <passfile>', 'file full of passwords to use in attack payload', '/opt/rockyou.txt'],
-		['-t, --type <type>', 'payload type to use for this attack (Ex. http-form-post)', 'http-form-post'],
-		['-i, --input <input>', 'input configuration for payload', 'csrf=tokenCSRF'],
+		['a', 'attackUri <attackUri>', 'URI to attack'],
+		['u', 'user <user>', 'username to use in attack payload', 'admin'],
+		['U', 'userFile <userFile>', 'file full of usernames to use in attack payload'],
+		['p', 'pass <pass>', 'password to use in attack payload'],
+		['P', 'passFile <passfile>', 'file full of passwords to use in attack payload', '/opt/rockyou.txt'],
+		['t', 'type <type>', 'payload type to use for this attack (Ex. http-form-post)', 'web-form-post'],
+		['i', 'input <input>', 'input configuration for payload', 'csrf=tokenCSRF'],
 		[
-			'-o, --output <output>',
+			'o',
+			'output <output>',
 			'output configuration for payload',
 			'username=:username:&password=:password:&csrf=:csrf:'
 		],
-		['-l, --maxParallel <maxParallel>', 'max parallel attack in one batch', 80],
-		['-b, --batchSize <batchSize>', 'attack batch size length', 1000],
-		['-d, --dryRun <dryRun>', 'executes the attack in dry run mode', false]
+		['l', 'maxParallel <maxParallel>', 'max parallel attack in one batch', 80],
+		['b', 'batchSize <batchSize>', 'attack batch size length', 1000],
+		['d', 'dryRun', 'executes the attack in dry run mode', false]
 	]
 
 	// events() {
@@ -31,6 +33,16 @@ module.exports = class Settings extends require('./') {
 	// 		}
 	// 	}
 	// }
+
+	async add(option) {
+		if (!this.foundOptions) {
+			this.foundOptions = []
+		}
+		if (_.includes(this.foundOptions, option)) {
+			throw new Error(`The setting ${option} already exists!`)
+		}
+		this.foundOptions.push(option)
+	}
 
 	async start() {
 		program.name('xhaust').usage('[options]')
@@ -47,7 +59,9 @@ module.exports = class Settings extends require('./') {
 
 		// Add this OPTIONS first
 		for (let option of this.OPTIONS) {
-			program.option(...option)
+			await this.add(option[0])
+			await this.add(option[1].split(' ')[0])
+			program.option(`-${option[0]}, --${option[1]}`, option[2], option[3])
 		}
 
 		// Then add rest of core options
@@ -59,7 +73,9 @@ module.exports = class Settings extends require('./') {
 				if (core.constructor.name === 'Settings') continue
 				program.option(`\n${core.constructor.name} settings`)
 				for (let option of core.OPTIONS) {
-					program.option(...option)
+					await this.add(option[0])
+					await this.add(option[1].split(' ')[0])
+					program.option(`-${option[0]}, --${option[1]}`, option[2], option[3])
 				}
 			}
 		}

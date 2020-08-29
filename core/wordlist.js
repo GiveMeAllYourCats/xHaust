@@ -10,12 +10,12 @@ module.exports = class WordlistGenerator extends require('./') {
 	events() {
 		return {
 			preAttack: async () => {
-				this.xhaust.wordlists = {}
+				this.xhaust.wordlist = {}
 				if (this.xhaust.settings.userFile)
-					this.xhaust.wordlists.username = await this.generate(this.xhaust.settings.userFile, this.xhaust)
+					this.xhaust.wordlist.username = await this.generate(this.xhaust.settings.userFile, this.xhaust)
 
 				if (this.xhaust.settings.passFile)
-					this.xhaust.wordlists.password = await this.generate(this.xhaust.settings.passFile, this.xhaust)
+					this.xhaust.wordlist.password = await this.generate(this.xhaust.settings.passFile, this.xhaust)
 			}
 		}
 	}
@@ -38,26 +38,32 @@ class Wordlist {
 			// count total lines with wc -l (really fast! but erhmm windows??)
 			this.total = parseInt(await xhaust.Execute.run(`wc -l < ${this.file}`))
 
-			// some stats
-			this.todo = this.total
-			this.done = 0
+			await this.reset()
 
-			// create readline interface
-			this.readstream = fs.createReadStream(this.file)
-			this.readline = readline.createInterface({
-				input: this.readstream
-			})
-
-			// create the async generator
-			this.asyncIterator = this.readline[Symbol.asyncIterator]()
 			resolve(this)
 		})
 	}
 
-	async close() {
-		this.readline.close()
-		this.readstream.close()
-		this.readstream.destroy()
+	async gotoLine(line) {
+		await this.reset()
+		for (var i = 0; i < line - 1; i++) {
+			await this.asyncIterator.next()
+		}
+	}
+
+	async reset() {
+		// some stats
+		this.todo = this.total
+		this.done = 0
+
+		// create readline interface
+		this.readstream = fs.createReadStream(this.file)
+		this.readline = readline.createInterface({
+			input: this.readstream
+		})
+
+		// create the async generator
+		this.asyncIterator = this.readline[Symbol.asyncIterator]()
 	}
 
 	async get(amount = 1) {

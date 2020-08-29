@@ -5,7 +5,9 @@ module.exports = class Core {
 		if (this.events) {
 			const events = this.events()
 			for (let event in events) {
-				this.xhaust.event.on(event, events[event])
+				this.xhaust.event.on(event, async data => {
+					await events[event](data)
+				})
 			}
 		}
 	}
