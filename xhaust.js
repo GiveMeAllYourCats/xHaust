@@ -25,6 +25,7 @@ SOFTWARE.
 const glob = require('glob')
 const fs = require('fs')
 const path = require('path')
+const cliProgress = require('cli-progress')
 const _ = require('lodash')
 const async = require('async')
 const Emittery = require('emittery')
@@ -80,13 +81,20 @@ module.exports = class xHaust {
 	async boot() {
 		await this.event.emitSerial('preAttack')
 		this.currentUser = (await this.getUser())[0]
-		this.loopedUsers = false
-		this.loopedPasswords = false
-		await this.attackLoop()
+		await this.getTotalAttack()
+		await this.startProgress()
+		while (this.doneAttacks <= this.totalAttacks) await this.attackLoop()
 		await this.event.emitSerial('postAttack')
 	}
 
+	async startProgress() {
+		this.progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic)
+		this.progressBar.start(this.totalAttacks, 0)
+	}
+
 	async quit(reason = 'Unknown :(') {
+		this.progressBar.update(this.totalAttacks)
+		this.progressBar.stop()
 		await this.event.emitSerial('quit')
 		this.Debug.warn(`Quitting xHaust, reason: ${reason}`)
 		this.Banner.footer()
@@ -97,11 +105,28 @@ module.exports = class xHaust {
 		await this.event.emitSerial('preLoop')
 		const [username, passwords] = await this.getBatch()
 
-		await async.eachLimit(passwords, parseInt(this.settings.maxParallel), async password => {
+		await async.eachLimit(passwords, this.settings.maxParallel, async password => {
 			await this.payload.attack({ username, password })
+			this.doneAttacks++
+			this.progressBar.update(this.doneAttacks)
 		})
 		await this.event.emitSerial('postLoop')
-		await this.attackLoop()
+	}
+
+	async getTotalAttack() {
+		this.doneAttacks = 0
+		let users = 1
+		let passwords = 1
+
+		if (this.settings.userFile) {
+			users = this.wordlist.username.total
+		}
+
+		if (this.settings.passFile) {
+			passwords = this.wordlist.password.total
+		}
+
+		this.totalAttacks = users * passwords
 	}
 
 	async getUser(amount = 1) {
@@ -118,14 +143,14 @@ module.exports = class xHaust {
 		if (passwords.length === 0) {
 			await this.wordlist.password.reset()
 			if (this.wordlist.username) {
-				// username list
+				// list
 				const oldUser = this.currentUser
-				this.currentUser = await this.getUser()
-				if (this.currentUser.length === 0) {
+				this.currentUser = (await this.getUser())[0]
+				if (!this.currentUser) {
 					return await this.quit('Usernames/Passwords depleted!')
 				}
 			} else {
-				// single user
+				// single
 				return await this.quit('Passwords depleted!')
 			}
 			return await this.getBatch()

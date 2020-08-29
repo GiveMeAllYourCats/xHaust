@@ -8,7 +8,7 @@ const async = require('async')
 const faker = require('faker')
 const HTMLParser = require('fast-html-parser')
 
-module.exports = class Request extends require('./') {
+module.exports = class Http extends require('./') {
 	ORDER = 100
 	OPTIONS = [
 		['T', 'tor', 'use tor for all HTTP(s) requests', false],
@@ -81,8 +81,6 @@ module.exports = class Request extends require('./') {
 			async.retry(
 				this.retry,
 				async () => {
-					if (typeof options === 'string') options = { url: options }
-
 					// Make the request
 					// console.log(options, selector)
 					let response
@@ -96,28 +94,37 @@ module.exports = class Request extends require('./') {
 							 * The request was made and the server responded with a
 							 * status code that falls out of the range of 2xx
 							 */
-							// return console.log(err.response.status)
+							return resolve({
+								error: true,
+								reason: `Http Status ${err.response.status} ${err.response.statusText}`,
+								response: err.response,
+								request: err.request
+							})
 						} else if (err.request) {
 							/*
 							 * The request was made but no response was received, `err.request`
 							 * is an instance of XMLHttpRequest in the browser and an instance
 							 * of http.ClientRequest in Node.js
 							 */
-							// return console.log(err.request)
+							return resolve({
+								error: true,
+								reason: `The request was made but no response was received`,
+								request: err.request
+							})
 						}
 						// Something happened in setting up the request and triggered an Error
-						// console.log('Error', err.message)
-						// return reject(new Error(err))
+						return reject(new Error(err))
 					}
-
-					// // Parse response with fast-html-parser
+					// Parse response with fast-html-parser
 					// response.dom = HTMLParser.parse(response.data)
-
 					return response
 				},
 				(err, result) => {
 					if (err) return reject(new Error(err))
-					return resolve(result)
+					return resolve({
+						error: false,
+						response: result
+					})
 				}
 			)
 		})

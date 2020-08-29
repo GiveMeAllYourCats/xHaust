@@ -37,6 +37,7 @@ class Wordlist {
 
 			// count total lines with wc -l (really fast! but erhmm windows??)
 			this.total = parseInt(await xhaust.Execute.run(`wc -l < ${this.file}`))
+			this.total++ //TODO: WHYYYYYYY
 
 			await this.reset()
 
